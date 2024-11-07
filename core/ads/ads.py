@@ -94,7 +94,7 @@ class Ads:
 
             except Exception as e:
                 logger.error(f"{self.profile_number}: Error не удалось запустить браузер {e}")
-                self.pw.stop()
+                self.pw.stop() if self.pw else None
                 random_sleep(5, 10)
 
         raise Exception(f"{self.profile_number}: Error не удалось запустить браузер")
@@ -121,7 +121,7 @@ class Ads:
         :return: None
         """
         self.browser.close()
-        self.pw.stop()
+        self.pw.stop() if self.pw else None
         params = dict(serial_number=self.profile_number)
         url = self.local_api_url + 'browser/stop'
         random_sleep(1, 2)

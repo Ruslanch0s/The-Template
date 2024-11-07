@@ -30,6 +30,6 @@ class Bot:
             logger.error(f"Аккаунт {self.ads.profile_number} завершен по таймауту")
         else:
             logger.error(f"Аккаунт {self.ads.profile_number} завершен с ошибкой {exc_val}")
-        return False
+        return True
 
 

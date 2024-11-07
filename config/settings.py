@@ -10,7 +10,15 @@ class Config(Singleton):
     load_dotenv()
 
     # откуда брать аккаунты
-    accounts_source = 'txt'  # txt, excel
+    accounts_source = 'excel'  # txt, excel
+
+    date_format = '%d/%m/%Y %H:%M:%S'
+
+    is_random = True
+
+    pause_between_profile = [10, 20]
+
+    cycle = 10  # укажите сколько раз прокрутить все аккаунты, ставьте -1 если бесконечно
 
     set_proxy = False
     check_proxy = False

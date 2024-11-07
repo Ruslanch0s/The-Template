@@ -7,10 +7,9 @@ import secrets
 import string
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional, Any, Tuple, List
+from typing import Optional, Any
 
 import requests
-from cryptography.fernet import Fernet
 from eth_typing import ChecksumAddress
 from web3 import Web3
 from loguru import logger
@@ -37,25 +36,22 @@ def get_accounts() -> list[Account]:
     :return: генератор аккаунтов
     """
     if config.accounts_source == 'excel':
-        profile_numbers, passwords, private_keys, seeds, proxies = get_from_excel()
+        accounts_raw_data = get_from_excel()
     else:
-        profile_numbers, passwords, private_keys, seeds, proxies = get_accounts_from_txt()
+        accounts_raw_data = get_accounts_from_txt()
 
     # Определяем количество аккаунтов
-    length = len(profile_numbers)
+    length = len(accounts_raw_data[0])
     # Заполняем списки до нужной длины
-    accounts_raw_data = filler(
-        length,
-        profile_numbers,
-        passwords,
-        private_keys,
-        seeds,
-        proxies
-    )
+    combined_data = filler(length, *accounts_raw_data)
     logger.info(f"Извлечено {length} аккаунтов")
 
+    if config.is_random:
+        # Перемешиваем данные
+        random.shuffle(combined_data)
+
     # ленивый генератор аккаунтов
-    for profile_number, password, private_key, seed, proxies in zip(*accounts_raw_data):
+    for profile_number, password, private_key, seed, proxies in combined_data:
         yield Account(profile_number, password, private_key, seed, proxies)
 
 
@@ -88,7 +84,7 @@ def get_accounts_from_txt() -> tuple[list[str], list[str], list[str], list[str],
     return profile_numbers, passwords, private_keys, seeds, proxies
 
 
-def filler(length: int, *_args: list[Any]) -> tuple[list[Any], ...]:
+def filler(length: int, *_args: list[Any]) -> list[tuple[Any]]:
     """
     Заполняет список до нужной длины
     :param length: длина
@@ -96,13 +92,14 @@ def filler(length: int, *_args: list[Any]) -> tuple[list[Any], ...]:
     :return: заполненный список
     """
     for arg in _args:
-        if arg is None:
+        if not arg:
             arg = [None] * length
         if len(arg) < length:
             if len(arg) != 0:
                 logger.warning('Проверьте файлы с данными, длина списков не совпадает')
             arg += [None] * (length - len(arg))
-    return _args
+
+    return list(zip(*_args))
 
 
 def get_list_from_file(

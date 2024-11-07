@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from typing import Optional
+from datetime import datetime
 
+from loguru import logger
 from openpyxl import Workbook, load_workbook
 import os
 
@@ -166,3 +168,44 @@ class Excel:
         else:
             cell.value = number
         self.table.save(self.file)
+
+    def set_date(self, column_name: str, row: Optional[int] = None) -> None:
+        """
+        Записывает текущее время и дату в excel таблицу.
+        Формат даты настраивается в файле config/settings.py
+        :param column_name: имя столбца
+        :param value: значение
+        :param row: номер строки, если не указан, то берется строка аккаунта
+        :return: None
+        """
+        row = self.acc_row if not row else row
+
+        col_num = self.find_column(column_name)
+        if not col_num:
+            col_num = self.add_column(column_name)
+
+        self.sheet.cell(row=row, column=col_num, value=datetime.now().strftime(config.date_format))
+        self.table.save(self.file)
+
+    def get_date(self, column_name: str, row: Optional[int] = None) -> datetime:
+        """
+        Возвращает дату из ячейки в таблице Excel, если в ячейке пусто, возвращает старую дату.
+        Не указывайте столбец, где есть что-либо кроме даты, иначе получите ошибку.
+        Формат даты настраивается в файле config/settings.py
+        :param column_name: имя столбца
+        :return: значение ячейки
+        """
+        row = self.acc_row if not row else row
+
+        col_num = self.find_column(column_name)
+        if not col_num:
+            col_num = self.add_column(column_name)
+
+        date_str = self.sheet.cell(row=row, column=col_num).value
+        if date_str:
+            date_object = datetime.strptime(date_str, config.date_format)
+            return date_object
+        logger.error(f"Не нашли дату в столбце '{column_name}' у аккаунта {self.account.profile_number}, возвращаем старую дату")
+        return datetime.now().replace(year=2000)
+
+

@@ -69,10 +69,15 @@ class Metamask:
 
     def auth_metamask(self) -> None:
         """
-        Авторизует в metamask
-        :return:
+        Открывает страницу расширения метамаск и авторизуется вводя пароль.
+        Ссылка на метамаск настраивается в config/settings.py
+        Пароль должен быть указан в файле passwords.txt или в excel файле.
+        :return: None
         """
         self.open_metamask()
+        if not self.password:
+            raise Exception(f"{self.ads.profile_number} не указан пароль для авторизации в metamask")
+
         if self.ads.page.get_by_test_id('unlock-password').count():
             self.ads.page.get_by_test_id('unlock-password').fill(self.password)
             self.ads.page.get_by_test_id('unlock-submit').click()
