@@ -45,11 +45,12 @@ def activity(bot: Bot):
     """
     # открывать гугл и вбить в поле поиска "как узнать свой ip"
     bot.ads.open_url("https://www.google.com/")
-    if bot.account.profile_number == 948:
-        raise TimeoutError("Таймаут")
-    bot.excel.increase_counter('google')
-    bot.excel.get_cell('google')
-    time.sleep(10)
+    if bot.account.profile_number == 944:
+        raise Exception("Ошибка")
+
+    # bot.excel.increase_counter('google')
+    # bot.excel.get_cell('google')
+    # time.sleep(10)
 
 
 

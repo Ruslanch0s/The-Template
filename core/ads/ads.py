@@ -10,7 +10,7 @@ from config.settings import config
 from models.account import Account
 from utils.utils import random_sleep, get_response
 
-from playwright.sync_api import sync_playwright, Browser, Page, Locator
+from playwright.sync_api import sync_playwright, Browser, Page, Locator, Playwright
 from loguru import logger
 
 
@@ -23,7 +23,7 @@ class Ads:
         if config.set_proxy:
             self.proxy = proxy
             self._set_proxy()
-
+        self.pw: Optional[Playwright] = None
         self.browser = self._start_browser()
         self.context = self.browser.contexts[0]
         self.page = self.context.new_page()
@@ -85,15 +85,16 @@ class Ads:
 
                 # подключаемся к браузеру
                 random_sleep(4, 5)
-                pw = sync_playwright().start()
+                self.pw = sync_playwright().start()
                 slow_mo = random.randint(800, 1200)
-                browser = pw.chromium.connect_over_cdp(endpoint, slow_mo=slow_mo)
+                browser = self.pw.chromium.connect_over_cdp(endpoint, slow_mo=slow_mo)
                 if browser.is_connected():
                     return browser
                 logger.error(f"{self.profile_number}: Error не удалось запустить браузер")
 
             except Exception as e:
                 logger.error(f"{self.profile_number}: Error не удалось запустить браузер {e}")
+                self.pw.stop()
                 random_sleep(5, 10)
 
         raise Exception(f"{self.profile_number}: Error не удалось запустить браузер")
@@ -105,7 +106,6 @@ class Ads:
         """
         try:
             for page in self.context.pages:
-                page = page
                 if 'offscreen' in page.url:
                     continue
                 if page.url != self.page.url:
@@ -121,6 +121,7 @@ class Ads:
         :return: None
         """
         self.browser.close()
+        self.pw.stop()
         params = dict(serial_number=self.profile_number)
         url = self.local_api_url + 'browser/stop'
         random_sleep(1, 2)
@@ -225,9 +226,9 @@ class Ads:
 
     def _get_ip(self) -> str:
         """
-        Получает ip текущего профиля
-        :return: ip_check_browser_status
-        """
+        # Получает ip текущего профиля
+        # :return: ip_check_browser_status
+        # """
         try:
             ip = self.page.evaluate('''
                         async () => {

@@ -1,7 +1,6 @@
 import os
 
 import dotenv
-import keyring
 from dotenv import load_dotenv
 
 from models.patterns import Singleton
@@ -20,7 +19,7 @@ class Config(Singleton):
 
     metamask_url = "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html"
 
-    bot_token = keyring.get_password('telegram_api_key', 'bot_token')
+    bot_token = os.getenv("BOT_TOKEN")
     chat_id = '12345678'
 
     okx_api_key_main = os.getenv("OKX_API_KEY_MAIN")

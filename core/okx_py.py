@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Literal
 
-import keyring
 
 from config import config
 
@@ -40,9 +39,9 @@ class OKX:
                 balances = balance["data"]
 
                 funding_api = Funding.FundingAPI(
-                    keyring.get_password("okx_api_key", sub_name),
-                    keyring.get_password("okx_secret_key", sub_name),
-                    keyring.get_password("okx_passphrase", sub_name),
+                    config.okx_api_key_main,
+                    config.okx_secret_key_main,
+                    config.okx_passphrase_main,
                     flag="0",
                     debug=False
                 )
