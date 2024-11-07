@@ -6,20 +6,24 @@ from typing import Optional, Literal
 
 import requests
 
-from config import config
-from utils import random_sleep, get_response
+from config.settings import config
+from models.account import Account
+from utils.utils import random_sleep, get_response
 
 from playwright.sync_api import sync_playwright, Browser, Page, Locator
+from loguru import logger
 
 
 class Ads:
     local_api_url = "http://local.adspower.net:50325/api/v1/"
 
-    def __init__(self, profile_number: int, proxy: Optional[str] = None):
-        self.proxy = proxy
-        self.profile_number = profile_number
+    def __init__(self, account: Account, proxy: Optional[str] = None):
+        self.profile_number = account.profile_number
+
         if config.set_proxy:
+            self.proxy = proxy
             self._set_proxy()
+
         self.browser = self._start_browser()
         self.context = self.browser.contexts[0]
         self.page = self.context.new_page()
@@ -44,7 +48,7 @@ class Ads:
             data = get_response(url, params)
             return data['data']['ws']['puppeteer']
         except Exception as e:
-            print(f"{self.profile_number}: Ошибка при открытии браузера: {e}")
+            logger.error(f"{self.profile_number}: Ошибка при открытии браузера: {e}")
             raise e
 
     def _check_browser_status(self) -> Optional[str]:
@@ -58,11 +62,11 @@ class Ads:
         try:
             data = get_response(url, params)
             if data['data']['status'] == 'Active':
-                print(f"{self.profile_number}: Браузер уже активен")
+                logger.info(f"{self.profile_number}: Браузер уже активен")
                 return data['data']['ws']['puppeteer']
             return None
         except Exception as e:
-            print(f"{self.profile_number}: Ошибка при проверке статуса браузера: {e}")
+            logger.error(f"{self.profile_number}: Ошибка при проверке статуса браузера: {e}")
             raise e
 
     def _start_browser(self) -> Browser:
@@ -75,7 +79,7 @@ class Ads:
             try:
                 # Проверяем статус браузера и запускаем его, если не активен
                 if not (endpoint := self._check_browser_status()):
-                    print(f"{self.profile_number}: Запускаем браузер")
+                    logger.info(f"{self.profile_number}: Запускаем браузер")
                     random_sleep(3, 4)
                     endpoint = self._open_browser()
 
@@ -86,10 +90,10 @@ class Ads:
                 browser = pw.chromium.connect_over_cdp(endpoint, slow_mo=slow_mo)
                 if browser.is_connected():
                     return browser
-                print(f"{self.profile_number}: Error не удалось запустить браузер")
+                logger.error(f"{self.profile_number}: Error не удалось запустить браузер")
 
             except Exception as e:
-                print(f"{self.profile_number}: Error не удалось запустить браузер {e}")
+                logger.error(f"{self.profile_number}: Error не удалось запустить браузер {e}")
                 random_sleep(5, 10)
 
         raise Exception(f"{self.profile_number}: Error не удалось запустить браузер")
@@ -108,7 +112,7 @@ class Ads:
                     page.close()
 
         except Exception as e:
-            print(f"{self.profile_number}: Ошибка при закрытии страниц: {e}")
+            logger.error(f"{self.profile_number}: Ошибка при закрытии страниц: {e}")
             raise e
 
     def close_browser(self) -> None:
@@ -123,7 +127,7 @@ class Ads:
         try:
             get_response(url, params)
         except Exception as e:
-            print(f"{self.profile_number} Ошибка при остановке браузера: {e}")
+            logger.error(f"{self.profile_number} Ошибка при остановке браузера: {e}")
             raise e
 
     def catch_page(self, url_contains: str | list[str] = None, timeout: int = 10) -> \
@@ -146,7 +150,7 @@ class Ads:
                         self.pages_context_reload()
                     random_sleep(1, 2)
 
-        print(f"{self.profile_number} Ошибка страница не найдена: {url_contains}")
+        logger.error(f"{self.profile_number} Ошибка страница не найдена: {url_contains}")
         return None
 
     def pages_context_reload(self):
@@ -189,7 +193,7 @@ class Ads:
             random_sleep(2)
 
         except Exception as e:
-            print(f"{self.profile_number} Ошибка при установке прокси: {e}")
+            logger.error(f"{self.profile_number} Ошибка при установке прокси: {e}")
             raise e
 
     def _get_profile_id(self) -> str:
@@ -205,7 +209,7 @@ class Ads:
             data = get_response(url, params)
             return data['data']['list'][0]['user_id']
         except Exception as e:
-            print(f"{self.profile_number} Ошибка при получении id профиля: {e}")
+            logger.error(f"{self.profile_number} Ошибка при получении id профиля: {e}")
             raise e
 
     def _check_proxy(self) -> None:
@@ -215,14 +219,14 @@ class Ads:
         """
         ip, port, login, password = self.proxy.split(":")
         current_ip = self._get_ip()
-        print(f"{self.profile_number} Текущий ip: {current_ip}")
+        logger.error(f"{self.profile_number} Текущий ip: {current_ip}")
         if current_ip != ip:
             raise Exception("Прокси не работает")
 
     def _get_ip(self) -> str:
         """
         Получает ip текущего профиля
-        :return: ip
+        :return: ip_check_browser_status
         """
         try:
             ip = self.page.evaluate('''
@@ -233,7 +237,7 @@ class Ads:
                         }
                     ''')
         except Exception:
-            print(f"{self.profile_number} Ошибка при получении ip")
+            logger.error(f"{self.profile_number} Ошибка при получении ip")
             self.page.goto("https://api.ipify.org/?format=json")
             random_sleep(1, 2)
             ip_text = self.page.locator("//pre").inner_text()  # парсим json и возвращаем ip
@@ -279,7 +283,7 @@ class Ads:
                 except Exception as e:
                     if attempt == attempts - 1:
                         raise e
-                    print(f"{self.profile_number}: Ошибка при открытии страницы {url}: {e}")
+                    logger.error(f"{self.profile_number}: Ошибка при открытии страницы {url}: {e}")
                     random_sleep(1, 2)
 
         # Если передан xpath, ждем элемент на странице заданное время

@@ -6,7 +6,7 @@ from typing import Optional, TYPE_CHECKING
 from eth_typing import ChecksumAddress
 from loguru import logger
 
-from config import PATH_TO_ABI
+from config.settings import config
 from utils.utils import to_checksum
 
 if TYPE_CHECKING:
@@ -42,11 +42,12 @@ class ContractRaw:
         logger.error(f'Ошибка сравнения контрактов {type(other)}')
         return False
 
-    def get_abi(self) -> list[dict]:
+    @property
+    def abi(self) -> list[dict]:
         """
-        Возвращает abi контракта из файла
+        Ленивый геттер abi контракта, загружает его из файла при первом обращении.
         :return: abi контракта
         """
         if not self._abi:
-            self._abi = json.load(open(PATH_TO_ABI / f'{self.abi_name}.json'))
+            self._abi = json.load(open(config.PATH_TO_ABI / f'{self.abi_name}.json'))
         return self._abi

@@ -4,27 +4,28 @@ from typing import Literal
 
 import keyring
 
-from config import settings
+from config import config
 
 import okx.SubAccount as SubAccount
 import okx.Funding as Funding
+from loguru import logger
 
-from utils import random_sleep
+from utils.utils import random_sleep
 
 
 class OKX:
     def __init__(self):
         self.sub_account_api = SubAccount.SubAccountAPI(
-            config.okx_api_key_main.get_secret_value(),
-            config.okx_secret_key_main.get_secret_value(),
-            config.okx_passphrase_main.get_secret_value(),
+            config.okx_api_key_main,
+            config.okx_secret_key_main,
+            config.okx_passphrase_main,
             flag="0",
             debug=False
         )
         self.funding_api = Funding.FundingAPI(
-            config.okx_api_key_main.get_secret_value(),
-            config.okx_secret_key_main.get_secret_value(),
-            config.okx_passphrase_main.get_secret_value(),
+            config.okx_api_key_main,
+            config.okx_secret_key_main,
+            config.okx_passphrase_main,
             flag="0",
             debug=False
         )
@@ -57,7 +58,7 @@ class OKX:
                         type='3',
                         subAcct=sub_name
                     )
-                    print(f"Вывод с суб аккаунта {response}")
+                    logger.info(f"Вывод с суб аккаунта {response}")
 
     def withdraw(
             self,
@@ -78,7 +79,7 @@ class OKX:
         fee = self._get_withdrawal_fee(token, token_with_chain)
 
         try:
-            print(f'{address}: Выводим с okx {amount} {token}')
+            logger.info(f'{address}: Выводим с okx {amount} {token}')
             response = self.funding_api.withdrawal(
                 ccy=token,
                 amt=amount,
@@ -92,9 +93,9 @@ class OKX:
                     f'{address}: Не удалось вывести {amount} {token}: {response.get("msg")}')
             tx_id = response.get("data")[0].get("wdId")
             self.wait_confirm(tx_id)
-            print(f'{address}: Успешно выведено {amount} {token}')
+            logger.info(f'{address}: Успешно выведено {amount} {token}')
         except Exception as error:
-            print(f'{address}: Не удалось вывести {amount} {token}: {error} ')
+            logger.error(f'{address}: Не удалось вывести {amount} {token}: {error} ')
             raise error
 
     def _get_withdrawal_fee(self, token: str, token_with_chain: str):
@@ -109,10 +110,10 @@ class OKX:
             if network.get("chain") == token_with_chain:
                 return network.get("minFee")
 
-        print(f" не могу получить сумму комиссии, проверьте значения symbolWithdraw и network")
+        logger.error(f" не могу получить сумму комиссии, проверьте значения symbolWithdraw и network")
         return 0
 
-    async def wait_confirm(self, tx_id: str) -> None:
+    def wait_confirm(self, tx_id: str) -> None:
         """
         Ожидание подтверждения транзакции вывода с OKX
         :param tx_id: id транзакции вывода
@@ -122,10 +123,8 @@ class OKX:
             tx_info = self.funding_api.get_deposit_withdraw_status(wdId=tx_id)
             if tx_info.get("code") == "0":
                 if 'Withdrawal complete' in tx_info.get("data")[0].get("state"):
-                    print(f"Транзакция {tx_id} завершена")
+                    logger.info(f"Транзакция {tx_id} завершена")
                     return
             random_sleep(10)
-        print(f"Ошибка транзакция {tx_id} не завершена")
+        logger.error(f"Ошибка транзакция {tx_id} не завершена")
         raise Exception(f"Транзакция {tx_id} не завершена")
-
-

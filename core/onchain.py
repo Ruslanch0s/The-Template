@@ -8,20 +8,22 @@ from loguru import logger
 from web3 import Web3
 from web3.contract import Contract
 
-from config import Tokens
-from core.daps.arbswap import Arbswap
-from models import Token, Chain, Amount, TokenTypes
+from config.tokens import Tokens
+from models.token import Token, TokenTypes
+from models.chain import Chain
+from models.amount import Amount
 from models.contract_raw import ContractRaw
 from utils.utils import to_checksum
 
 
 class Onchain:
-    def __init__(self, private_key: str, chain: Chain):
-        self.private_key = private_key
-        self.chain = chain
-        self.w3 = Web3(Web3.HTTPProvider(chain.rpc))
-        self.address = self.w3.eth.account.from_key(private_key).address
-        self.arbswap = Arbswap(self)
+    def __init__(self, private_key: Optional[str], chain: Chain):
+        if private_key:
+            self.private_key = private_key
+            self.chain = chain
+            self.w3 = Web3(Web3.HTTPProvider(chain.rpc))
+            if private_key:
+                self.address = self.w3.eth.account.from_key(private_key).address
 
     def get_token_params(self, token_address: str | ChecksumAddress) -> tuple[str, int]:
         """
@@ -176,8 +178,6 @@ class Onchain:
             return Tokens.get_token_by_symbol('WETH', self.chain)
         return token
 
-
-
     def get_allowance(self, token: Token, spender: str | ChecksumAddress | ContractRaw) -> Amount:
         """
         Получение разрешенной суммы токенов на снятие
@@ -223,8 +223,8 @@ class Onchain:
 
         tx = contract.functions.approve(spender, amount.wei).build_transaction(tx_params)
         self.sing_and_send(tx)
-        message = f'approve {amount.ether_float} {token.name} to {spender}'
-        print(f'Транзакция отправлена {message}')
+        message = f'approve {amount.ether_float} {token.symbol} to {spender}'
+        logger.info(f'Транзакция отправлена {message}')
 
     def sing_and_send(self, tx: dict) -> str:
         """
@@ -241,10 +241,8 @@ class Onchain:
 
 
 if __name__ == '__main__':
-    pk = ''
-    onchain = Onchain(pk, rpc=rpc)
-    onchain.swap(Tokens.USDC, Tokens.ETH, 1)
     pass
+
     #
     # allowance = {
     #     'sender': {

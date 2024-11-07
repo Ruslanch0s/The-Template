@@ -1,27 +1,55 @@
+import time
+
+from eth_account import Account
+from loguru import logger
+
+from config import Chains
 from core.bot import Bot
-from utils import get_list_from_file
-from utils import init_console
+from utils.logging import init_logger
+from utils.utils import random_sleep
+from utils.utils import get_accounts
+
 
 def main():
-    init_console()
-    profiles =  get_list_from_file("profiles.txt.txt")
-    private_keys = get_list_from_file("private_keys.txt")
+    """ Основная функция """
+    # Инициализация консоли и логгера
+    init_logger()
+    # Получаем список аккаунтов из файлов
+    accounts = get_accounts()
 
-    for profile_number, private_key in zip(profiles, private_keys):
-        print(f"Запуск профиля {profile_number}")
-        bot = Bot(profile_number, private_key)
+    # Перебираем аккаунты
+    for account in accounts:
+        # передаем аккаунт в функцию worker
         try:
-            bot.run_activity()
-            print(f"Профиль {profile_number} завершен")
+            worker(account)
         except Exception as e:
-            print(f"Ошибка в профиле {profile_number}, {e}")
-        finally:
-            bot.close()
-    print("Все профили завершены")
+            logger.error(f"Ошибка в аккаунте {account.profile_number}: {e}")
 
-if __name__ == '__main__':
-    main()
+def worker(account: Account) -> None:
+    """
+    Функция для работы с аккаунтом, создает бота и передает его в функцию activity
+    :param account: аккаунт
+    :return: None
+    """
+    # Создаем бота
+    with Bot(account, Chains.LINEA) as bot:
+        # Вызываем функцию activity и передаем в нее бота
+        activity(bot)
 
+
+def activity(bot: Bot):
+    """
+    Функция для работы с ботом, описываем логику активности бота.
+    :param bot: бот
+    :return: None
+    """
+    # открывать гугл и вбить в поле поиска "как узнать свой ip"
+    bot.ads.open_url("https://www.google.com/")
+    if bot.account.profile_number == 948:
+        raise TimeoutError("Таймаут")
+    bot.excel.increase_counter('google')
+    bot.excel.get_cell('google')
+    time.sleep(10)
 
 
 

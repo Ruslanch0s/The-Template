@@ -1,4 +1,4 @@
-from models import Chain
+from models.chain import Chain
 from models.exceptions import ChainNameError
 
 
@@ -22,6 +22,12 @@ class Chains:
         name='arbitrum_one',
         rpc='https://1rpc.io/arbitrum',
         chain_id=42161
+    )
+
+    TAIKO = Chain(
+        name='taiko',
+        rpc='https://taiko.drpc.org',
+        chain_id=167000
     )
 
     @classmethod

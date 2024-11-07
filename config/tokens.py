@@ -1,5 +1,7 @@
 from config.chains import Chains
-from models import Token, TokenTypes, Chain
+from models.token import Token, TokenTypes
+from models.chain import Chain
+
 from models.exceptions import TokenNameError
 from utils.utils import to_checksum
 
@@ -21,6 +23,14 @@ class Tokens:
         address='0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
         chain=Chains.ARBITRUM_ONE,
     )
+
+
+    WETH_TAIKO = Token(
+        symbol='WETH',
+        address='0xa51894664a773981c6c112c43ce576f315d5b1b6',
+        chain=Chains.TAIKO,
+    )
+
 
     @classmethod
     def get_token_by_address(cls, address: str) -> Token:

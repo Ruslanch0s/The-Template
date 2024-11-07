@@ -1,9 +1,10 @@
+from loguru import logger
 from playwright.sync_api import Locator
 
-from core.ads import Ads
+from core.ads.ads import Ads
 from config import config
-from models import Chain
-from utils import random_sleep, generate_password, write_text_to_file
+from models.chain import Chain
+from utils.utils import random_sleep, generate_password, write_text_to_file
 
 
 class Metamask:
@@ -80,9 +81,9 @@ class Metamask:
             self.ads.click_if_exists(method='test_id', value='popover-close')
 
         if self.ads.page.get_by_test_id('account-options-menu-button').count():
-            print(f"{self.ads.profile_number} успешно авторизован в metamask")
+            logger.info(f"{self.ads.profile_number} успешно авторизован в metamask")
         else:
-            print(f"{self.ads.profile_number} ошибка авторизации в metamask")
+            logger.error(f"{self.ads.profile_number} ошибка авторизации в metamask")
 
     def import_wallet(self):
         """
