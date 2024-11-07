@@ -163,3 +163,4 @@ cython_debug/
 /.idea/.gitignore
 /.idea/misc.xml
 /tests/
+/logs/
