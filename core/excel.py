@@ -156,25 +156,60 @@ class Excel:
 
         return row_values
 
-    def increase_counter(self, column_name: str, number: int = 1, row: Optional[int] = None) -> None:
+    def get_counter(self, column_name: str, row: Optional[int] = None) -> int:
         """
-        Увеличивает значение счетчика на 1 или на указанное число. Если столбец не существует, создает его.
-        Если ячейка пустая, устанавливает значение 1.
+        Возвращает значение счетчика из ячейки в таблице Excel. Если ячейка пустая, возвращает 0 и записывает 0 в ячейку.
         :param column_name: имя столбца
-        :param number: на сколько увеличить
-        :return: None
+        :param row: номер строки, если не указан, то берется строка аккаунта
+        :return: значение ячейки
         """
         row = self.acc_row if not row else row
+
         col_num = self.find_column(column_name)
         if not col_num:
             logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
             col_num = self.add_column(column_name)
         cell = self.sheet.cell(row=row, column=col_num)
-        if cell.value:
-            cell.value += number
-        else:
-            cell.value = number
+
+        if cell.value is None:
+            cell.value = 0
+            self.table.save(self.file)
+        elif isinstance(cell.value, str):
+            if cell.value.isdigit():
+                cell.value = int(cell.value)
+                self.table.save(self.file)
+            else:
+                raise TypeError(f"Значение в столбце '{column_name}' не является числом")
+
+        return cell.value
+
+    def increase_counter(self, column_name: str, number: int = 1, row: Optional[int] = None) -> int:
+        """
+        Увеличивает значение счетчика на 1 или на указанное число. Если столбец не существует, создает его.
+        Если ячейка пустая, устанавливает значение 0 и увеличивает на 1 или на указанное число.
+        :param column_name: имя столбца
+        :param number: на сколько увеличить
+        :return: результирующее значение в ячейке
+        """
+        row = self.acc_row if not row else row
+
+        col_num = self.find_column(column_name)
+        if not col_num:
+            logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
+            col_num = self.add_column(column_name)
+        cell = self.sheet.cell(row=row, column=col_num)
+
+        if cell.value is None:
+            cell.value = 0
+        elif isinstance(cell.value, str):
+            if cell.value.isdigit():
+                cell.value = int(cell.value)
+            else:
+                raise TypeError(f"Значение в столбце '{column_name}' не является числом")
+
+        cell.value += number
         self.table.save(self.file)
+        return cell.value
 
     def set_date(self, column_name: str, row: Optional[int] = None) -> None:
         """
