@@ -37,10 +37,9 @@ class Ads:
 
     def _open_browser(self) -> str:
         """
-        Открывает браузер в ADS по номеру профиля
+        Открывает браузер в ADS, номер профиля берется из self.profile_number
         :return: параметры запущенного браузера
         """
-
         params = dict(serial_number=self.profile_number)
         url = self.local_api_url + 'browser/start'
         random_sleep(1, 2)
@@ -53,7 +52,7 @@ class Ads:
 
     def _check_browser_status(self) -> Optional[str]:
         """
-        Проверяет статус браузера в ADS по номеру профиля
+        Проверяет статус браузера в ADS, номер профиля берется из self.profile_number
         :return: параметры запущенного браузера
         """
         params = dict(serial_number=self.profile_number)
@@ -66,14 +65,14 @@ class Ads:
                 return data['data']['ws']['puppeteer']
             return None
         except Exception as e:
-            logger.error(f"{self.profile_number}: Ошибка при проверке статуса браузера: {e}")
+            logger.error(f"{self.profile_number}: Ошибка при проверке статуса браузера (запущен ли ADS?: {e} ")
             raise e
 
     def _start_browser(self) -> Browser:
         """
-        Запускает браузер в ADS по номеру профиля.
+        Запускает браузер в ADS, номер профиля берется из self.profile_number
         Делает 3 попытки прежде чем вызвать исключение.
-        :return: Browser
+        :return: объект Browser
         """
         for attempt in range(3):
             try:
@@ -117,7 +116,7 @@ class Ads:
 
     def close_browser(self) -> None:
         """
-        Останавливает браузер в ADS по номеру профиля
+        Останавливает браузер в ADS, номер профиля берется из self.profile_number
         :return: None
         """
         self.browser.close()
@@ -136,7 +135,7 @@ class Ads:
         """
         Ищет страницу по частичному совпадению url.
         :param url_contains: текст, который ищем в url или список текстов
-        :param timeout:  время ожидания
+        :param timeout: время ожидания
         :return: страница с нужным url или None
         """
         if isinstance(url_contains, str):
@@ -154,9 +153,9 @@ class Ads:
         logger.error(f"{self.profile_number} Ошибка страница не найдена: {url_contains}")
         return None
 
-    def pages_context_reload(self):
+    def pages_context_reload(self) -> None:
         """
-        Перезагружает контекст страниц
+        Перезагружает контекст вкладок. Необходимо когда playwright не видит вкладку.
         :return: None
         """
         self.context.new_page()
@@ -257,12 +256,12 @@ class Ads:
             attempts: int = 1
     ) -> None:
         """
-        Открывает страницу по url, если еще не открыта
-        :param url: ссылка на страницу
-        :param wait_until: состояние страницы, когда считается что она загрузилась
-        :param locator: элемент, который нужно дождаться
+        Открывает страницу по url, если еще не открыта. Может ждать элемент на странице.
+        :param url: ссылка на страницу, желательно в формате https://
+        :param wait_until: состояние страницы, когда считается что она загрузилась. По умолчанию load.
+        :param locator: элемент, который нужно дождаться на странице
         :param timeout: время ожидания в секундах
-        :param attempts: количество попыток
+        :param attempts: количество попыток открыть страницу
         :return: None
         """
         # Переводим время ожидания в миллисекунды, если передали секунды

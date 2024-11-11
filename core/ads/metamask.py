@@ -145,8 +145,9 @@ class Metamask:
 
     def connect(self, locator: Locator, timeout: int = 30) -> None:
         """
-        Подтверждает подключение к metamask
-        :return:
+        Подтверждает подключение к metamask.
+        :param locator: локатор кнопки подключения, после нажатия которой появляется окно метамаска.
+        :return: None
         """
 
         try:
@@ -171,8 +172,9 @@ class Metamask:
 
     def sign(self, locator: Locator, timeout: int = 30) -> None:
         """
-        Подтверждает подпись в metamask
-        :return:
+        Подтверждает подпись в metamask.
+        :param locator: локатор кнопки вызова подписи.
+        :return: None
         """
         try:
             with self.ads.context.expect_page(timeout=timeout) as page_catcher:
@@ -193,8 +195,10 @@ class Metamask:
 
     def send_tx(self, locator: Locator, timeout: int = 30) -> None:
         """
-        Подтверждает отправку транзакции в metamask
-        :return:
+        Подтверждает отправку транзакции в metamask.
+        :param locator: локатор кнопки вызова транзакции
+        :param timeout: время ожидания в секундах, по умолчанию 30
+        :return None
         """
         try:
             with self.ads.context.expect_page(timeout=timeout) as page_catcher:
@@ -213,12 +217,13 @@ class Metamask:
 
         confirm_button.click()
 
-    def select_chain(self, chain: Chain):
+    def select_chain(self, chain: Chain) -> None:
         """
-        Выбирает сеть в metamask
-        :param chain: название сети как в метамаске
-        :return:
+        Выбирает сеть в metamask.
+        :param chain: объект сети
+        :return: None
         """
+        self.open_metamask()
         chain_button = self.ads.page.get_by_test_id("network-display")
         if chain.name in chain_button.inner_text():
             return
@@ -231,11 +236,11 @@ class Metamask:
             self.ads.page.get_by_role('button', name='Close').first.click()
             self.set_chain(chain)
 
-    def set_chain(self, chain: Chain):
+    def set_chain(self, chain: Chain)-> None:
         """
         Добавляет новую сеть в metamask
-        :param chain: название сети
-        :return:
+        :param chain: объект сети
+        :return: None
         """
 
         self.ads.open_url(self._url + "#settings/networks/add-network")

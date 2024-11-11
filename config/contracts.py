@@ -3,6 +3,7 @@ from models.contract_raw import ContractRaw
 
 
 class Contracts:
+    """Класс для хранения адресов контрактов и их ABI"""
     ARBSWAP_SWAP_FACTORY = ContractRaw(
         address='0xd394e9cc20f43d2651293756f8d320668e850f1b',
         abi_name='arbswap_swap_factory',

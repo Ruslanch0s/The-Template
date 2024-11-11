@@ -4,13 +4,11 @@ import time
 from eth_account import Account
 from loguru import logger
 
-from config import config
-from config import Chains
+from config import config, Chains
 from core.bot import Bot
 from core.excel import Excel
 from utils.logging import init_logger
-from utils.utils import random_sleep
-from utils.utils import get_accounts
+from utils.utils import random_sleep, get_accounts, send_telegram_message
 
 
 def main():
@@ -56,7 +54,7 @@ def schedule(account: Account) -> bool:
     """
     excel = Excel(account)
     date = excel.get_date('Активность 1')
-    if date < datetime.datetime.now() - datetime.timedelta(minutes=2):
+    if date < datetime.datetime.now() - datetime.timedelta(days=5):
         return True
     return False
 
@@ -67,10 +65,8 @@ def activity(bot: Bot):
     :param bot: бот
     :return: None
     """
-    # открывать гугл и вбить в поле поиска "как узнать свой ip"
-    bot.ads.open_url("https://www.google.com/")
-    bot.excel.increase_counter('google')
-    bot.excel.set_date('Активность 1')
+    pass
+
 
 
 if __name__ == '__main__':

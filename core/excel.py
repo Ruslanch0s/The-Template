@@ -20,21 +20,25 @@ class Excel:
     def __init__(self, account: Optional[Account] = None) -> None:
         self.account = account
         self.file = config.PATH_EXCEL
-        self.table = self.get_table()
+        self.table = self._get_table()
         self.sheet: Worksheet = self.table.active
         if account:
-            self.acc_row = self.find_acc_row(str(self.account.profile_number))
+            self.acc_row = self._find_acc_row(str(self.account.profile_number))
 
-    def get_table(self) -> Workbook:
+    def _get_table(self) -> Workbook:
+        """
+        Получает таблицу из файла, если файла нет, создает его.
+        :return: объект таблицы
+        """
         if not os.path.exists(self.file):  # Если файл не существует, создаем его
-            table = self.create_excel()
+            table = self._create_excel()
         else:
             table = load_workbook(self.file)
         return table
 
-    def create_excel(self) -> Workbook:
+    def _create_excel(self) -> Workbook:
         """
-        Создает excel файл и заполняет его заголовками.
+        Создает excel файл и заполняет его стандартными заголовками.
         :return: None
         """
         table = Workbook()  # Создаем новую таблицу
@@ -47,7 +51,7 @@ class Excel:
         table.save(self.file)  # Сохраняем таблицу
         return table
 
-    def find_acc_row(self, profile_number: str) -> int:
+    def _find_acc_row(self, profile_number: str) -> int:
         """
         Находит номер строки в таблице по номеру профиля. Если строки нет, добавляет ее.
         :param profile_number: номер профиля
@@ -62,9 +66,9 @@ class Excel:
 
     def add_row(self, values: list) -> None:
         """
-        Добавляет значения из списка в строку в конец таблицы.
+        Добавляет значения из списка в строку в конец таблицы. Каждое значение в отдельную ячейку.
         :param values: список значений
-        :return:
+        :return: None
         """
         self.sheet.append(values)
         self.table.save(self.file)
@@ -81,6 +85,7 @@ class Excel:
 
         col_num = self.find_column(column_name)
         if not col_num:
+            logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
             col_num = self.add_column(column_name)
         self.sheet.cell(row=row, column=col_num, value=value)
         self.table.save(self.file)
@@ -100,7 +105,7 @@ class Excel:
         """
         Находит номер столбца по имени.
         :param column_name: имя столбца
-        :return:
+        :return: номер столбца
         """
         for row in self.sheet.iter_rows(max_row=1):
             for cell in row:
@@ -112,7 +117,8 @@ class Excel:
         """
         Возвращает значение ячейки по имени столбца из строки аккаунта.
         :param column_name: имя столбца
-        :return: значение ячейки
+        :param row: номер строки, если не указан, то берется строка аккаунта
+        :return: значение ячейки, может быть строкой, числом или None
         """
         row = self.acc_row if not row else row
 
@@ -120,7 +126,7 @@ class Excel:
 
         return self.sheet.cell(row=row, column=col_num).value
 
-    def get_column(self, column_name: str) -> list[str]:
+    def get_column(self, column_name: str) -> list[str | int | None]:
         """
         Возвращает список значений столбца по имени.
         :param column_name: имя столбца
@@ -128,7 +134,7 @@ class Excel:
         """
         col_num = self.find_column(column_name)
         if not col_num:
-            raise ValueError(f"Column with name '{column_name}' not found.")
+            raise ValueError(f"Столбец '{column_name}' не найден")
         column_values = []
         for raw in self.sheet.iter_cols(min_col=col_num, max_col=col_num, min_row=2):
             for cell in raw:
@@ -136,7 +142,7 @@ class Excel:
 
         return column_values
 
-    def get_row(self, row: Optional[int] = None) -> list[str]:
+    def get_row(self, row: Optional[int] = None) -> list[str | int | None]:
         """
         Возвращает список значений из строки аккаунта.
         :param row: номер строки, если не указан, то берется строка аккаунта
@@ -161,6 +167,7 @@ class Excel:
         row = self.acc_row if not row else row
         col_num = self.find_column(column_name)
         if not col_num:
+            logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
             col_num = self.add_column(column_name)
         cell = self.sheet.cell(row=row, column=col_num)
         if cell.value:
@@ -174,7 +181,6 @@ class Excel:
         Записывает текущее время и дату в excel таблицу.
         Формат даты настраивается в файле config/settings.py
         :param column_name: имя столбца
-        :param value: значение
         :param row: номер строки, если не указан, то берется строка аккаунта
         :return: None
         """
@@ -182,6 +188,7 @@ class Excel:
 
         col_num = self.find_column(column_name)
         if not col_num:
+            logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
             col_num = self.add_column(column_name)
 
         self.sheet.cell(row=row, column=col_num, value=datetime.now().strftime(config.date_format))
@@ -199,13 +206,13 @@ class Excel:
 
         col_num = self.find_column(column_name)
         if not col_num:
+            logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
             col_num = self.add_column(column_name)
 
         date_str = self.sheet.cell(row=row, column=col_num).value
         if date_str:
             date_object = datetime.strptime(date_str, config.date_format)
             return date_object
-        logger.error(f"Не нашли дату в столбце '{column_name}' у аккаунта {self.account.profile_number}, возвращаем старую дату")
+        logger.error(
+            f"Не нашли дату в столбце '{column_name}' у аккаунта {self.account.profile_number}, возвращаем старую дату")
         return datetime.now().replace(year=2000)
-
-

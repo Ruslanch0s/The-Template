@@ -5,7 +5,6 @@ from typing import Literal
 
 from config import config
 
-import okx.SubAccount as SubAccount
 import okx.Funding as Funding
 from loguru import logger
 
@@ -14,13 +13,6 @@ from utils.utils import random_sleep
 
 class OKX:
     def __init__(self):
-        self.sub_account_api = SubAccount.SubAccountAPI(
-            config.okx_api_key_main,
-            config.okx_secret_key_main,
-            config.okx_passphrase_main,
-            flag="0",
-            debug=False
-        )
         self.funding_api = Funding.FundingAPI(
             config.okx_api_key_main,
             config.okx_secret_key_main,
@@ -29,35 +21,18 @@ class OKX:
             debug=False
         )
 
-    def collect_sub_balances(self):
-        sub_list_response = self.sub_account_api.get_subaccount_list()
-        sub_list = sub_list_response["data"]
-        for sub in sub_list:
-            sub_name = sub["subAcct"]
-            balance = self.sub_account_api.get_funding_balance(sub_name)
-            if balance["data"]:
-                balances = balance["data"]
+    def get_currencies(self):
+        """
+        Получение списка доступных токенов и сетей.
+        :return: список токенов
+        """
+        response = self.funding_api.get_currencies()
+        data = response.get("data")
+        if response.get("code") != "0":
+            logger.error(f"Не удалось получить список токенов: {response.get('msg')}")
+        for chain in data:
+            print(chain)
 
-                funding_api = Funding.FundingAPI(
-                    config.okx_api_key_main,
-                    config.okx_secret_key_main,
-                    config.okx_passphrase_main,
-                    flag="0",
-                    debug=False
-                )
-
-                for balance in balances:
-                    token_name = balance["ccy"]
-                    token_amount = balance["availBal"]
-                    response = funding_api.funds_transfer(
-                        ccy=token_name,
-                        amt=token_amount,
-                        from_="6",
-                        to="6",
-                        type='3',
-                        subAcct=sub_name
-                    )
-                    logger.info(f"Вывод с суб аккаунта {response}")
 
     def withdraw(
             self,
@@ -69,7 +44,7 @@ class OKX:
         """
         Вывод средств с биржи OKX
         :param address:  Адрес кошелька
-        :param chain: сеть
+        :param chain: сеть токена
         :param token: токен
         :param amount: сумма
         :return: None
@@ -91,7 +66,7 @@ class OKX:
                 raise Exception(
                     f'{address}: Не удалось вывести {amount} {token}: {response.get("msg")}')
             tx_id = response.get("data")[0].get("wdId")
-            self.wait_confirm(tx_id)
+            self._wait_confirm(tx_id)
             logger.info(f'{address}: Успешно выведено {amount} {token}')
         except Exception as error:
             logger.error(f'{address}: Не удалось вывести {amount} {token}: {error} ')
@@ -112,7 +87,7 @@ class OKX:
         logger.error(f" не могу получить сумму комиссии, проверьте значения symbolWithdraw и network")
         return 0
 
-    def wait_confirm(self, tx_id: str) -> None:
+    def _wait_confirm(self, tx_id: str) -> None:
         """
         Ожидание подтверждения транзакции вывода с OKX
         :param tx_id: id транзакции вывода

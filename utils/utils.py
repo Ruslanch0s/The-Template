@@ -64,8 +64,8 @@ def get_from_excel() -> tuple[list[str], list[str], list[str], list[str], list[s
     # Получаем данные из excel файла
     profile_numbers = excel.get_column("Profile Number")
     passwords = excel.get_column("Password")
-    private_keys = excel.get_column("Seed")
-    seeds = excel.get_column("Private Key")
+    seeds = excel.get_column("Seed")
+    private_keys = excel.get_column("Private Key")
     proxies = excel.get_column("Proxy")
     return profile_numbers, passwords, private_keys, seeds, proxies
 
@@ -84,22 +84,24 @@ def get_accounts_from_txt() -> tuple[list[str], list[str], list[str], list[str],
     return profile_numbers, passwords, private_keys, seeds, proxies
 
 
-def filler(length: int, *_args: list[Any]) -> list[tuple[Any]]:
+def filler(length: int, *_args: tuple[list]) -> list[tuple[Any]]:
     """
     Заполняет список до нужной длины
     :param length: длина
     :param _args: список
     :return: заполненный список
     """
+    new_args = []
     for arg in _args:
         if not arg:
             arg = [None] * length
-        if len(arg) < length:
+        elif len(arg) < length:
             if len(arg) != 0:
                 logger.warning('Проверьте файлы с данными, длина списков не совпадает')
             arg += [None] * (length - len(arg))
+        new_args.append(arg)
+    return list(zip(*new_args))
 
-    return list(zip(*_args))
 
 
 def get_list_from_file(
