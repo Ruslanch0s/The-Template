@@ -318,12 +318,12 @@ class Ads:
         if locator.count():
             locator.click()
 
-    def click_and_catch_page(self, locator: Locator) -> Page:
+    def click_and_catch_page(self, locator: Locator, timeout=30) -> Page:
         """
         Кликает по элементу и ждет появления страницы, ловит и возвращает ее
         :param locator: локатор элемента
         :return: страница
         """
-        with self.context.expect_page() as page_catcher:
+        with self.context.expect_page(timeout=timeout*1000) as page_catcher:
             locator.click()
         return page_catcher.value

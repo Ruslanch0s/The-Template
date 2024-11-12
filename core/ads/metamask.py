@@ -150,12 +150,12 @@ class Metamask:
         :param locator: локатор кнопки подключения, после нажатия которой появляется окно метамаска.
         :return: None
         """
-
         try:
-            with self.ads.context.expect_page(timeout=timeout) as page_catcher:
+            with self.ads.context.expect_page(timeout=timeout*1000) as page_catcher:
                 locator.click()
             metamask_page = page_catcher.value
-        except:
+        except Exception as e:
+            logger.warning(f"Wargning: не смогли поймать окно метамаск, пробуем еще {self.ads.profile_number} {e}")
             metamask_page = self.ads.catch_page(['connect', 'confirm-transaction'])
             if not metamask_page:
                 raise Exception(f"Error: {self.ads.profile_number} Ошибка подключения метамаска")
@@ -171,6 +171,7 @@ class Metamask:
         if not metamask_page.is_closed():
             confirm_button.click()
 
+
     def sign(self, locator: Locator, timeout: int = 30) -> None:
         """
         Подтверждает подпись в metamask.
@@ -178,7 +179,7 @@ class Metamask:
         :return: None
         """
         try:
-            with self.ads.context.expect_page(timeout=timeout) as page_catcher:
+            with self.ads.context.expect_page(timeout=timeout*1000) as page_catcher:
                 locator.click()
             metamask_page = page_catcher.value
         except:
@@ -202,7 +203,7 @@ class Metamask:
         :return None
         """
         try:
-            with self.ads.context.expect_page(timeout=timeout) as page_catcher:
+            with self.ads.context.expect_page(timeout=timeout*1000) as page_catcher:
                 locator.click()
             metamask_page = page_catcher.value
         except:
