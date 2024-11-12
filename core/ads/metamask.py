@@ -3,16 +3,17 @@ from playwright.sync_api import Locator
 
 from core.ads.ads import Ads
 from config import config
+from models.account import Account
 from models.chain import Chain
 from utils.utils import random_sleep, generate_password, write_text_to_file
 
 
 class Metamask:
-    def __init__(self, ads: Ads, password: str = None, seed: str = None):
+    def __init__(self, ads: Ads, account: Account):
         self._url = config.metamask_url
         self.ads = ads
-        self.password = password
-        self.seed = seed
+        self.password = account.password
+        self.seed = account.seed
 
     def open_metamask(self):
         """

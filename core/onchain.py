@@ -83,7 +83,7 @@ class Onchain:
         :param contract_raw: объект ContractRaw
         :return: объект контракта
         """
-        return self.w3.eth.contract(contract_raw.address, abi=contract_raw.get_abi())
+        return self.w3.eth.contract(contract_raw.address, abi=contract_raw.abi)
 
     def get_priority_fee(self) -> int:
         """

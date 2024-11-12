@@ -13,7 +13,7 @@ class Bot:
     def __init__(self, account: Account, chain: Chain) -> None:
         self.account = account
         self.ads = Ads(account)
-        self.metamask = Metamask(self.ads)
+        self.metamask = Metamask(self.ads, account)
         self.okx = OKX()
         self.excel = Excel(account)
         self.onchain = Onchain(account.private_key, chain)
