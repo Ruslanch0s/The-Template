@@ -15,7 +15,7 @@ from loguru import logger
 
 
 class Ads:
-    local_api_url = "http://local.adspower.net:50325/api/v1/"
+    _local_api_url = "http://local.adspower.net:50325/api/v1/"
 
     def __init__(self, account: Account, proxy: Optional[str] = None):
         self.profile_number = account.profile_number
@@ -41,7 +41,7 @@ class Ads:
         :return: параметры запущенного браузера
         """
         params = dict(serial_number=self.profile_number)
-        url = self.local_api_url + 'browser/start'
+        url = self._local_api_url + 'browser/start'
         random_sleep(1, 2)
         try:
             data = get_response(url, params)
@@ -56,7 +56,7 @@ class Ads:
         :return: параметры запущенного браузера
         """
         params = dict(serial_number=self.profile_number)
-        url = self.local_api_url + 'browser/active'
+        url = self._local_api_url + 'browser/active'
         random_sleep(1, 2)
         try:
             data = get_response(url, params)
@@ -65,7 +65,8 @@ class Ads:
                 return data['data']['ws']['puppeteer']
             return None
         except Exception as e:
-            logger.error(f"{self.profile_number}: Ошибка при проверке статуса браузера (запущен ли ADS?: {e} ")
+            logger.error(
+                f"{self.profile_number}: Ошибка при проверке статуса браузера (запущен ли ADS?: {e} ")
             raise e
 
     def _start_browser(self) -> Browser:
@@ -122,7 +123,7 @@ class Ads:
         self.browser.close()
         self.pw.stop() if self.pw else None
         params = dict(serial_number=self.profile_number)
-        url = self.local_api_url + 'browser/stop'
+        url = self._local_api_url + 'browser/stop'
         random_sleep(1, 2)
         try:
             get_response(url, params)
@@ -187,7 +188,7 @@ class Ads:
                 "user_id": profile_id,
                 "user_proxy_config": proxy_config
             }
-            url = self.local_api_url + "user/update"
+            url = self._local_api_url + "user/update"
             response = requests.post(url, json=data, headers={"Content-Type": "application/json"})
             response.raise_for_status()
             random_sleep(2)
@@ -201,7 +202,7 @@ class Ads:
         Запрашивает id профиля в ADS по номеру профиля
         :return: id профиля в ADS
         """
-        url = self.local_api_url + 'user/list'
+        url = self._local_api_url + 'user/list'
         params = {"serial_number": self.profile_number}
 
         random_sleep(1, 2)
@@ -316,3 +317,13 @@ class Ads:
 
         if locator.count():
             locator.click()
+
+    def click_and_catch_page(self, locator: Locator) -> Page:
+        """
+        Кликает по элементу и ждет появления страницы, ловит и возвращает ее
+        :param locator: локатор элемента
+        :return: страница
+        """
+        with self.context.expect_page() as page_catcher:
+            locator.click()
+        return page_catcher.value
