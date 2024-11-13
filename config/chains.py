@@ -6,6 +6,22 @@ class Chains:
     """
     Класс для хранения списка сетей.
     Название переменных Chains и значение name в объекте Chain должны совпадать.
+    Информацию для добавление сети можно взять из https://chainlist.org/ (рекомендую 1rpc)
+
+    Объект Chain содержит следующие поля:
+
+    обязательные:
+
+    - name - имя сети
+    - rpc - адрес ноды
+    - chain_id - id сети
+
+    опциональные:
+
+    - tx_type - тип транзакции, по умолчанию 2 (0 - Legacy, 2 - EIP-1559)
+    - native_token - тикер нативного токена сети, по умолчанию 'ETH'
+
+
     """
     ETHEREUM = Chain(
         name='ethereum',
@@ -28,6 +44,13 @@ class Chains:
         name='taiko',
         rpc='https://taiko.drpc.org',
         chain_id=167000
+    )
+
+    BSC = Chain(
+        name='bsc',
+        rpc='https://1rpc.io/bnb',
+        chain_id=56,
+        native_token='BNB'
     )
 
     @classmethod
