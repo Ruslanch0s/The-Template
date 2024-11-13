@@ -238,18 +238,17 @@ class Metamask:
             self.ads.page.get_by_role('button', name='Close').first.click()
             self.set_chain(chain)
 
-    def set_chain(self, chain: Chain)-> None:
+    def set_chain(self, chain: Chain) -> None:
         """
         Добавляет новую сеть в metamask
         :param chain: объект сети
         :return: None
         """
-
         self.ads.open_url(self._url + "#settings/networks/add-network")
         random_sleep(1, 3)
         self.ads.page.get_by_test_id('network-form-network-name').fill(chain.name)
         self.ads.page.get_by_test_id('network-form-rpc-url').fill(chain.rpc)
-        self.ads.page.get_by_test_id('network-form-chain-id').fill(chain.chain_id)
+        self.ads.page.get_by_test_id('network-form-chain-id').fill(str(chain.chain_id))
         self.ads.page.get_by_test_id('network-form-ticker-input').fill(chain.native_token)
         random_sleep(1, 3)
         self.ads.page.get_by_role('button', name='Save').or_(
