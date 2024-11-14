@@ -233,7 +233,7 @@ class Metamask:
         random_sleep(1, 3)
 
         if self.ads.page.get_by_text(chain.name).count():
-            self.ads.page.get_by_text(chain).click()
+            self.ads.page.get_by_text(chain.name).click()
         else:
             self.ads.page.get_by_role('button', name='Close').first.click()
             self.set_chain(chain)
