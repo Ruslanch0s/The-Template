@@ -162,11 +162,9 @@ class Metamask:
 
         metamask_page.wait_for_load_state('load')
 
-        confirm_button = metamask_page.get_by_test_id('page-container-footer-next')
-        if not confirm_button.count():
-            confirm_button = metamask_page.get_by_test_id('confirm-footer-button')
+        confirm_button = metamask_page.get_by_test_id('page-container-footer-next').or_(metamask_page.get_by_test_id('confirm-footer-button'))
 
-        confirm_button.click()
+        confirm_button.first.click()
         random_sleep(1, 3)
         if not metamask_page.is_closed():
             confirm_button.click()
@@ -221,13 +219,13 @@ class Metamask:
 
     def select_chain(self, chain: Chain) -> None:
         """
-        Выбирает сеть в metamask.
-        :param chain: объект сети
+        Выбирает сеть в metamask. Если сеть не найдена, добавляет новую из параметра chain
+        :param chain: объект сети Chain
         :return: None
         """
         self.open_metamask()
         chain_button = self.ads.page.get_by_test_id("network-display")
-        if chain.name in chain_button.inner_text():
+        if chain.metamask_name in chain_button.inner_text():
             return
         chain_button.click()
         random_sleep(1, 3)

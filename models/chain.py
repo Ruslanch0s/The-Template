@@ -1,3 +1,5 @@
+from typing import Optional
+
 from loguru import logger
 
 
@@ -8,13 +10,11 @@ class Chain:
     name - название сети, в формате snake_case, при инициализации
     в класс Chains должно совпадать с именем переменной
 
-    rpc - адрес провайдера в формате https://mainnet.infura.io/v3
-
-    chain_id - id сети, например 1 для Ethereum
-
-    tx_type - тип транзакции, по умолчанию 2 (0 - Legacy, 2 - EIP-1559)
-
-    native_token - тикер нативного токена сети, по умолчанию 'ETH'
+    :param rpc:  адрес провайдера в формате https://1rpc.io/ethereum
+    :param chain_id: id сети, например 1 для Ethereum
+    :param tx_type: тип транзакции, по умолчанию 2 (0 - Legacy, 2 - EIP-1559)
+    :param native_token: тикер нативного токена сети, по умолчанию 'ETH'
+    :param metamask_name: название сети в metamask, по умолчанию берется из параметра name
     """
 
     def __init__(
@@ -23,6 +23,7 @@ class Chain:
             rpc: str,
             *,
             chain_id: int,
+            metamask_name: Optional[str] = None,
             tx_type: int = 2,
             native_token: str = 'ETH'
     ):
@@ -31,6 +32,7 @@ class Chain:
         self.chain_id = chain_id
         self.tx_type = tx_type
         self.native_token = native_token
+        self.metamask_name = metamask_name if metamask_name else name
 
     def __str__(self):
         return self.rpc
