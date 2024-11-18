@@ -156,18 +156,13 @@ class Metamask:
             metamask_page = page_catcher.value
         except Exception as e:
             logger.warning(f"Wargning: не смогли поймать окно метамаск, пробуем еще {self.ads.profile_number} {e}")
-            metamask_page = self.ads.catch_page(['connect', 'confirm-transaction'])
+            metamask_page = self.ads.catch_page(['notification', 'connect', 'confirm-transaction', ])
             if not metamask_page:
                 raise Exception(f"Error: {self.ads.profile_number} Ошибка подключения метамаска")
 
         metamask_page.wait_for_load_state('load')
 
-        confirm_button = metamask_page.get_by_test_id('page-container-footer-next').or_(metamask_page.get_by_test_id('confirm-footer-button'))
-
-        confirm_button.first.click()
-        random_sleep(1, 3)
-        if not metamask_page.is_closed():
-            confirm_button.click()
+        metamask_page.get_by_test_id('confirm-btn').click()
 
 
     def sign(self, locator: Locator, timeout: int = 30) -> None:
@@ -205,15 +200,15 @@ class Metamask:
                 locator.click()
             metamask_page = page_catcher.value
         except:
-            metamask_page = self.ads.catch_page(['confirm-transaction'])
+            metamask_page = self.ads.catch_page(['notification', 'confirm-transaction'])
             if not metamask_page:
                 raise Exception(f"Error: {self.ads.profile_number} Ошибка подтверждения транзакции метамаска")
 
         metamask_page.wait_for_load_state('load')
 
-        confirm_button = metamask_page.get_by_test_id('page-container-footer-next')
+        confirm_button = metamask_page.get_by_test_id('confirm-footer-button')
         if not confirm_button.count():
-            confirm_button = metamask_page.get_by_test_id('confirm-footer-button')
+            confirm_button = metamask_page.get_by_test_id('page-container-footer-next')
 
         confirm_button.click()
 
