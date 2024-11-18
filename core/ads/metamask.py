@@ -225,31 +225,34 @@ class Metamask:
         """
         self.open_metamask()
         chain_button = self.ads.page.get_by_test_id("network-display")
-        if chain.metamask_name in chain_button.inner_text():
+        if chain.metamask_name == chain_button.inner_text():
             return
+
         chain_button.click()
         random_sleep(1, 3)
-
-        if self.ads.page.get_by_text(chain.name).count():
-            self.ads.page.get_by_text(chain.name).click()
+        enabled_networks = self.ads.page.locator('div[data-rbd-droppable-id="characters"]')
+        if enabled_networks.get_by_text(chain.metamask_name, exact=True).count():
+            enabled_networks.get_by_text(chain.metamask_name, exact=True).click()
         else:
             self.ads.page.get_by_role('button', name='Close').first.click()
             self.set_chain(chain)
+            self.select_chain(chain)
 
     def set_chain(self, chain: Chain) -> None:
         """
-        Добавляет новую сеть в metamask
+        Добавляет новую сеть в metamask. Берет параметры из объекта Chain.
         :param chain: объект сети
         :return: None
         """
         self.ads.open_url(self._url + "#settings/networks/add-network")
         random_sleep(1, 3)
-        self.ads.page.get_by_test_id('network-form-network-name').fill(chain.name)
-        self.ads.page.get_by_test_id('network-form-rpc-url').fill(chain.rpc)
+        self.ads.page.get_by_test_id('network-form-network-name').fill(chain.metamask_name)
+        self.ads.page.get_by_test_id('test-add-rpc-drop-down').click()
+        self.ads.page.get_by_role('button', name='Add RPC URL').click()
+        self.ads.page.get_by_test_id('rpc-url-input-test').fill(chain.rpc)
+        self.ads.page.get_by_role('button', name='Add URL').click()
+        if self.ads.page.get_by_test_id('network-form-chain-id-error').count():
+            raise Exception(f"Error: {self.ads.profile_number} metamask не принимает rpc {chain.rpc}, попробуйте другой")
         self.ads.page.get_by_test_id('network-form-chain-id').fill(str(chain.chain_id))
         self.ads.page.get_by_test_id('network-form-ticker-input').fill(chain.native_token)
-        random_sleep(1, 3)
-        self.ads.page.get_by_role('button', name='Save').or_(
-            self.ads.page.get_by_role('button', name='Сохранить')).click()
-        self.ads.page.get_by_role('heading', name='Switch to').or_(
-            self.ads.page.get_by_role('button', name='Сменить на')).click()
+        self.ads.page.get_by_role('button', name='Save').click()

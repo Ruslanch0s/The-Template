@@ -35,12 +35,14 @@ class Chains:
 
     LINEA = Chain(
         name='linea',
+        metamask_name='Linea Mainnet',
         rpc='https://1rpc.io/linea',
         chain_id=59144
     )
     ARBITRUM_ONE = Chain(
         name='arbitrum_one',
-        rpc='https://1rpc.io/arbitrum',
+        metamask_name='Arbitrum One',
+        rpc='https://1rpc.io/arb',
         chain_id=42161
     )
 
