@@ -59,6 +59,14 @@ class Chains:
         native_token='BNB'
     )
 
+    OP = Chain(
+        name='op',
+        rpc='https://1rpc.io/op',
+        chain_id=10,
+        native_token='ETH',
+        metamask_name='Optimism Mainnet'
+    )
+
     @classmethod
     def get_chain(cls, name: str) -> Chain:
         """

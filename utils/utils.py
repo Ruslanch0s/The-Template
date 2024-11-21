@@ -145,15 +145,15 @@ def random_sleep(min_delay: float = 0.5, max_delay: float = 1.5) -> None:
 
 def generate_password(length_min: int = 25, length_max: int = 35) -> str:
     """
-    Generate password
-    :param length_min:
-    :param length_max:
+    Генератор случайного пароля
+    :param length_min: минимальная длина пароля
+    :param length_max: максимальная длина пароля
     :return:
     """
-    length = random.randint(length_min, length_max)  # Генерируем случайную длину пароля
+    length = secrets.randbelow(length_max - length_min + 1) + length_min  # Генерируем случайную длину пароля
 
     # Определяем наборы символов
-    all_characters = [string.ascii_uppercase, string.ascii_uppercase, string.digits, string.punctuation]
+    all_characters = [string.ascii_uppercase, string.ascii_lowercase, string.digits, string.punctuation]
 
     # Обеспечиваем наличие хотя бы одного символа каждого типа
     password = [

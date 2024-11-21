@@ -3,12 +3,17 @@ from playwright.sync_api import Locator
 
 from core.ads.ads import Ads
 from config import config
+from core.excel import Excel
 from models.account import Account
 from models.chain import Chain
 from utils.utils import random_sleep, generate_password, write_text_to_file
 
 
 class Metamask:
+    """
+    Класс для работы с metamask v. 12.6.1
+    """
+
     def __init__(self, ads: Ads, account: Account):
         self._url = config.metamask_url
         self.ads = ads
@@ -22,10 +27,10 @@ class Metamask:
         """
         self.ads.open_url(self._url)
 
-    def create_wallet(self):
+    def create_wallet(self) -> tuple[str, str, str]:
         """
-        Создает кошелек в metamask
-        :return:
+        Создает кошелек в metamask, возвращает адрес кошелька, seed фразу и пароль в виде кортежа.
+        :return: tuple (address, seed, password)
         """
         self.open_metamask()
         self.ads.page.get_by_test_id('onboarding-terms-checkbox').click()
@@ -65,8 +70,7 @@ class Metamask:
 
         seed_str = " ".join(seed)
 
-        write_text_to_file("new_wallets.txt",
-                           f"{self.ads.profile_number} {address} {self.password} {seed_str}")
+        return address, seed_str, self.password
 
     def auth_metamask(self) -> None:
         """
@@ -91,10 +95,10 @@ class Metamask:
         else:
             logger.error(f"{self.ads.profile_number} ошибка авторизации в metamask")
 
-    def import_wallet(self):
+    def import_wallet(self) -> tuple[str, str]:
         """
-        Импортирует кошелек в metamask
-        :return:
+        Импортирует кошелек в metamask, используя seed фразу. Возвращает адрес кошелька и пароль в виде кортежа.
+        :return: tuple (address, password)
         """
         self.open_metamask()
 
@@ -130,8 +134,7 @@ class Metamask:
         self.ads.click_if_exists(method='test_id', value='popover-close')
         address = self.get_address()
         seed_str = " ".join(seed_list)
-        write_text_to_file("new_wallets.txt",
-                           f"{self.ads.profile_number} {address} {self.password} {seed_str}")
+        return address, self.password
 
     def get_address(self) -> str:
         """
@@ -140,7 +143,7 @@ class Metamask:
         """
         self.ads.page.get_by_test_id('account-options-menu-button').click()
         self.ads.page.get_by_test_id('account-list-menu-details').click()
-        address = self.ads.page.get_by_test_id('address-copy-button-text').inner_text()
+        address = self.ads.page.locator('.qr-code__address-segments').inner_text().replace('\n', '')
         self.ads.page.get_by_role('button', name='Close').first.click()
         return address
 
@@ -151,11 +154,12 @@ class Metamask:
         :return: None
         """
         try:
-            with self.ads.context.expect_page(timeout=timeout*1000) as page_catcher:
+            with self.ads.context.expect_page(timeout=timeout * 1000) as page_catcher:
                 locator.click()
             metamask_page = page_catcher.value
         except Exception as e:
-            logger.warning(f"Wargning: не смогли поймать окно метамаск, пробуем еще {self.ads.profile_number} {e}")
+            logger.warning(
+                f"Wargning: не смогли поймать окно метамаск, пробуем еще {self.ads.profile_number} {e}")
             metamask_page = self.ads.catch_page(['notification', 'connect', 'confirm-transaction', ])
             if not metamask_page:
                 raise Exception(f"Error: {self.ads.profile_number} Ошибка подключения метамаска")
@@ -164,7 +168,6 @@ class Metamask:
 
         metamask_page.get_by_test_id('confirm-btn').click()
 
-
     def sign(self, locator: Locator, timeout: int = 30) -> None:
         """
         Подтверждает подпись в metamask.
@@ -172,7 +175,7 @@ class Metamask:
         :return: None
         """
         try:
-            with self.ads.context.expect_page(timeout=timeout*1000) as page_catcher:
+            with self.ads.context.expect_page(timeout=timeout * 1000) as page_catcher:
                 locator.click()
             metamask_page = page_catcher.value
         except:
@@ -196,7 +199,7 @@ class Metamask:
         :return None
         """
         try:
-            with self.ads.context.expect_page(timeout=timeout*1000) as page_catcher:
+            with self.ads.context.expect_page(timeout=timeout * 1000) as page_catcher:
                 locator.click()
             metamask_page = page_catcher.value
         except:
@@ -247,7 +250,8 @@ class Metamask:
         self.ads.page.get_by_test_id('rpc-url-input-test').fill(chain.rpc)
         self.ads.page.get_by_role('button', name='Add URL').click()
         if self.ads.page.get_by_test_id('network-form-chain-id-error').count():
-            raise Exception(f"Error: {self.ads.profile_number} metamask не принимает rpc {chain.rpc}, попробуйте другой")
+            raise Exception(
+                f"Error: {self.ads.profile_number} metamask не принимает rpc {chain.rpc}, попробуйте другой")
         self.ads.page.get_by_test_id('network-form-chain-id').fill(str(chain.chain_id))
         self.ads.page.get_by_test_id('network-form-ticker-input').fill(chain.native_token)
         self.ads.page.get_by_role('button', name='Save').click()
