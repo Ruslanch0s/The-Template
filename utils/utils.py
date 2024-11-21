@@ -51,11 +51,11 @@ def get_accounts() -> list[Account]:
         random.shuffle(combined_data)
 
     # ленивый генератор аккаунтов
-    for profile_number, password, private_key, seed, proxies in combined_data:
-        yield Account(profile_number, password, private_key, seed, proxies)
+    for profile_number, address, password, private_key, seed, proxies in combined_data:
+        yield Account(profile_number, address, password, private_key, seed, proxies)
 
 
-def get_from_excel() -> tuple[list[str], list[str], list[str], list[str], list[str]]:
+def get_from_excel() -> tuple[list[str], list[str], list[str], list[str], list[str], list[str]]:
     """
     Получает аккаунты из excel файла
     :return: кортеж списков аккаунтов
@@ -64,13 +64,14 @@ def get_from_excel() -> tuple[list[str], list[str], list[str], list[str], list[s
     # Получаем данные из excel файла
     profile_numbers = excel.get_column("Profile Number")
     passwords = excel.get_column("Password")
+    addresses = excel.get_column("Address")
     seeds = excel.get_column("Seed")
     private_keys = excel.get_column("Private Key")
     proxies = excel.get_column("Proxy")
-    return profile_numbers, passwords, private_keys, seeds, proxies
+    return profile_numbers, addresses, passwords, private_keys, seeds, proxies
 
 
-def get_accounts_from_txt() -> tuple[list[str], list[str], list[str], list[str], list[str]]:
+def get_accounts_from_txt() -> tuple[list[str], list[str], list[str], list[str], list[str], list[str]]:
     """
     Достает данные из файлов и возвращает список аккаунтов
     :return: кортеж списков аккаунтов
@@ -78,10 +79,11 @@ def get_accounts_from_txt() -> tuple[list[str], list[str], list[str], list[str],
     # Получаем данные из файлов
     profile_numbers = get_list_from_file("profile_numbers.txt")
     passwords = get_list_from_file("passwords.txt")
+    addresses = get_list_from_file("addresses")
     private_keys = get_list_from_file("private_keys.txt")
     seeds = get_list_from_file("seeds.txt")
     proxies = get_list_from_file("proxies.txt")
-    return profile_numbers, passwords, private_keys, seeds, proxies
+    return profile_numbers, addresses, passwords, private_keys, seeds, proxies
 
 
 def filler(length: int, *_args: tuple[list]) -> list[tuple[Any]]:
@@ -101,7 +103,6 @@ def filler(length: int, *_args: tuple[list]) -> list[tuple[Any]]:
             arg += [None] * (length - len(arg))
         new_args.append(arg)
     return list(zip(*new_args))
-
 
 
 def get_list_from_file(
@@ -208,13 +209,13 @@ def get_response(
     return None
 
 
-def to_checksum(address: str | ChecksumAddress) -> ChecksumAddress:
+def to_checksum(address: Optional[str | ChecksumAddress]) -> ChecksumAddress:
     """
     Преобразует адрес в checksum формат
     :param address: адрес
     :return: адрес в checksum формате
     """
-    if isinstance(address, str):
+    if address and isinstance(address, str):
         address = Web3.to_checksum_address(address)
     return address
 

@@ -9,6 +9,7 @@ from web3 import Web3
 from web3.contract import Contract
 
 from config.tokens import Tokens
+from models.account import Account
 from models.token import Token, TokenTypes
 from models.chain import Chain
 from models.amount import Amount
@@ -17,13 +18,14 @@ from utils.utils import to_checksum
 
 
 class Onchain:
-    def __init__(self, private_key: Optional[str], chain: Chain):
-        if private_key:
-            self.private_key = private_key
-            self.chain = chain
-            self.w3 = Web3(Web3.HTTPProvider(chain.rpc))
-            if private_key:
-                self.address = self.w3.eth.account.from_key(private_key).address
+    def __init__(self, account: Account, chain: Chain):
+        self.account = account
+        self.chain = chain
+        self.w3 = Web3(Web3.HTTPProvider(chain.rpc))
+        if self.account.private_key:
+            if not self.account.address:
+                self.account.address = self.w3.eth.account.from_key(self.account.private_key).address
+
 
     def get_token_params(self, token_address: str | ChecksumAddress) -> tuple[str, int]:
         """
@@ -56,7 +58,7 @@ class Onchain:
 
         # если не указан адрес, то берем адрес аккаунта
         if not address:
-            address = self.address
+            address = self.account.address
 
         # приводим адрес к формату checksum
         address = to_checksum(address)
@@ -153,8 +155,8 @@ class Onchain:
         max_fee = int((base_fee + priority_fee) * random_multiplier)
 
         tx_params = {
-            'from': self.address,
-            'nonce': self.w3.eth.get_transaction_count(self.address),
+            'from': self.account.address,
+            'nonce': self.w3.eth.get_transaction_count(self.account.address),
             'maxFeePerGas': max_fee,
             'maxPriorityFeePerGas': priority_fee,
             'chainId': self.w3.eth.chain_id,
@@ -192,7 +194,7 @@ class Onchain:
             spender = Web3.to_checksum_address(spender)
 
         contract = self.get_contract(token)
-        allowance = contract.functions.allowance(self.address, spender).call()
+        allowance = contract.functions.allowance(self.account.address, spender).call()
         return Amount(allowance, decimals=token.decimals, wei=True)
 
     def approve(self, token: Token, amount: Amount | int | float,
@@ -234,7 +236,7 @@ class Onchain:
         """
         random_multiplier = random.uniform(1.05, 1.1)
         tx['gas'] = int(self.w3.eth.estimate_gas(tx) * random_multiplier * 1.1)
-        signed_tx = self.w3.eth.account.sign_transaction(tx, self.private_key)
+        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account.private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
         tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_receipt.transactionHash.hex()
@@ -242,11 +244,3 @@ class Onchain:
 
 if __name__ == '__main__':
     pass
-
-    #
-    # allowance = {
-    #     'sender': {
-    #         'resepient': 50,
-    #         'адрес_кто_баланс_тратит_2': 100
-    #     }
-    # }

@@ -10,13 +10,16 @@ class Config(Singleton):
     load_dotenv()  # загрузка переменных окружения из файла .env
 
     # откуда брать аккаунты
-    accounts_source = 'txt'  # txt, excel
+    accounts_source = 'excel'  # txt, excel
+
+    # type work
+    is_browser_run = False  # Запускать браузер
 
     # формат даты в excel, не меняйте если не знаете что делаете
     date_format = '%d/%m/%Y %H:%M:%S'
 
     # случайный порядок аккаунтов
-    is_random = True  # Если True, то аккаунты будут выбираться случайно, иначе по порядку
+    is_random = False  # Если True, то аккаунты будут выбираться случайно, иначе по порядку
 
     # пауза между запуском профилей в секундах от и до
     pause_between_profile = [10, 20]

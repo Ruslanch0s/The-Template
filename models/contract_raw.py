@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from typing import Optional, TYPE_CHECKING
 
 from eth_typing import ChecksumAddress
@@ -49,5 +50,7 @@ class ContractRaw:
         :return: abi контракта
         """
         if not self._abi:
-            self._abi = json.load(open(config.PATH_TO_ABI / f'{self.abi_name}.json'))
+            path = os.path.join(config.PATH_ABI, f'{self.abi_name}.json')
+            with open(path, 'r') as file:
+                self._abi = json.load(file)
         return self._abi

@@ -1,14 +1,15 @@
 import datetime
+import random
 import time
 
 from eth_account import Account
 from loguru import logger
 
-from config import config, Chains
+from config import config, Chains, Tokens
 from core.bot import Bot
 from core.excel import Excel
 from utils.logging import init_logger
-from utils.utils import random_sleep, get_accounts, send_telegram_message
+from utils.utils import random_sleep, get_accounts, generate_password
 
 
 def main():
@@ -35,11 +36,11 @@ def worker(account: Account) -> None:
     :return: None
     """
 
-    if not schedule(account):
-        return
+    # if not schedule(account):
+    #     return
 
     # Создаем бота
-    with Bot(account, Chains.LINEA) as bot:
+    with Bot(account, Chains.ARBITRUM_ONE) as bot:
         # Вызываем функцию activity и передаем в нее бота
         activity(bot)
 
@@ -65,8 +66,8 @@ def activity(bot: Bot):
     :param bot: бот
     :return: None
     """
+    bot.okx.get_currencies()
     pass
-
 
 
 if __name__ == '__main__':

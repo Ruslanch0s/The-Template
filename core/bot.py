@@ -16,7 +16,7 @@ class Bot:
         self.metamask = Metamask(self.ads, account)
         self.okx = OKX()
         self.excel = Excel(account)
-        self.onchain = Onchain(account.private_key, chain)
+        self.onchain = Onchain(account, chain)
 
     def __enter__(self):
         logger.info(f"Запуск профиля {self.account.profile_number}")

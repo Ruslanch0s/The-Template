@@ -22,3 +22,6 @@ class Amount:
 
         self.decimals = decimals
 
+    def __str__(self) -> str:
+        return f'{self.ether_float}'
+

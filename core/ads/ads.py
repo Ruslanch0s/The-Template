@@ -19,6 +19,8 @@ class Ads:
 
     def __init__(self, account: Account, proxy: Optional[str] = None):
         self.profile_number = account.profile_number
+        if not config.is_browser_run:
+            return
 
         if config.set_proxy:
             self.proxy = proxy
@@ -120,6 +122,8 @@ class Ads:
         Останавливает браузер в ADS, номер профиля берется из self.profile_number
         :return: None
         """
+        if not config.is_browser_run:
+            return
         self.browser.close()
         self.pw.stop() if self.pw else None
         params = dict(serial_number=self.profile_number)
