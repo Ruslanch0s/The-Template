@@ -171,3 +171,4 @@ cython_debug/
 /config/data/proxies.txt
 /config/data/seeds.txt
 
+/config/data/addresses.txt
