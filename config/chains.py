@@ -93,7 +93,7 @@ class Chains:
                 if isinstance(chain, Chain):
                     if chain.name.upper() == name:
                         return chain
-            raise ChainNameError(f'Chain {name} not found')
+            raise ChainNameError(f'Сеть {name} не найдена, добавьте ее в config/Chains, имена должны совпадать')
 
 
 
