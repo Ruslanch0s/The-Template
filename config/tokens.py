@@ -15,8 +15,9 @@ class Tokens:
         symbol='ETH',
         address='0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
         chain=Chains.ETHEREUM,
-        type=TokenTypes.NATIVE,
+        type_token=TokenTypes.NATIVE,
     )
+
 
     WETH_ARBITRUM_ONE = Token(
         symbol='WETH',
@@ -29,6 +30,14 @@ class Tokens:
         symbol='WETH',
         address='0xa51894664a773981c6c112c43ce576f315d5b1b6',
         chain=Chains.TAIKO,
+    )
+
+    ANGLE_ETHEREUM = Token(
+        symbol='ANGLE',
+        address='0x31429d1856aD1377A8A0079410B297e1a9e214c2',
+        chain=Chains.ETHEREUM,
+        type_token=TokenTypes.ERC20,
+        decimals=18
     )
 
 
@@ -50,3 +59,17 @@ class Tokens:
     def add_token(cls, token: Token):
         setattr(cls, token.symbol, token)
         return token
+
+    @classmethod
+    def get_tokens(cls, chain: Chain) -> list[Token]:
+        """
+        Получение списка токенов для сети
+        :param chain: объект Chain
+        :return:  список токенов
+        """
+        tokens = []
+        for token in cls.__dict__.values():
+            if isinstance(token, Token):
+                if token.chain == chain:
+                    tokens.append(token)
+        return tokens

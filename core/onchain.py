@@ -27,7 +27,7 @@ class Onchain:
                 self.account.address = self.w3.eth.account.from_key(self.account.private_key).address
 
 
-    def get_token_params(self, token_address: str | ChecksumAddress) -> tuple[str, int]:
+    def _get_token_params(self, token_address: str | ChecksumAddress) -> tuple[str, int]:
         """
         Получение параметров токена (symbol, decimals) по адресу контракта токена
         :param token_address:  адрес контракта токена
@@ -39,7 +39,7 @@ class Onchain:
             return Tokens.ETH.symbol, Tokens.ETH.decimals
 
         token_contract_raw = ContractRaw(token_contract_address, 'erc20', self.chain)
-        token_contract = self.get_contract(token_contract_raw)
+        token_contract = self._get_contract(token_contract_raw)
         decimals = token_contract.functions.decimals().call()
         symbol = token_contract.functions.symbol().call()
         return symbol, decimals
@@ -53,6 +53,7 @@ class Onchain:
         """
         Получение баланса кошелька в нативных или erc20 токенах, в формате Amount.
         :param token: объект Token или адрес смарт контракта токена, если не указан, то нативный баланс
+        :param address: адрес кошелька, если не указан, то берется адрес аккаунта
         :return: объект Amount с балансом
         """
 
@@ -65,21 +66,21 @@ class Onchain:
 
         # если передан адрес контракта, то получаем параметры токена и создаем объект Token
         if isinstance(token, str):
-            symbol, decimals = self.get_token_params(token)
+            symbol, decimals = self._get_token_params(token)
             token = Token(symbol, token, self.chain, decimals)
 
         # если токен не передан или передан нативный токен
-        if token is None or token.type == TokenTypes.NATIVE:
+        if token is None or token.type_token == TokenTypes.NATIVE:
             # получаем баланс нативного токена
             balance = Amount(self.w3.eth.get_balance(address), wei=True)
         else:
             # получаем баланс erc20 токена
-            contract = self.get_contract(token)
+            contract = self._get_contract(token)
             erc20_balance_wei = contract.functions.balanceOf(address).call()
             balance = Amount(erc20_balance_wei, decimals=token.decimals, wei=True)
         return balance
 
-    def get_contract(self, contract_raw: ContractRaw) -> Contract:
+    def _get_contract(self, contract_raw: ContractRaw) -> Contract:
         """
         Получение инициализированного объекта контракта
         :param contract_raw: объект ContractRaw
@@ -87,7 +88,7 @@ class Onchain:
         """
         return self.w3.eth.contract(contract_raw.address, abi=contract_raw.abi)
 
-    def get_priority_fee(self) -> int:
+    def _get_priority_fee(self) -> int:
         """
         Получение приоритетной ставки для транзакции за последние 30 блоков
         :return: приоритетная ставка
@@ -120,28 +121,28 @@ class Onchain:
 
         # если передан адрес контракта, то получаем параметры токена и создаем объект Token
         if isinstance(token, str):
-            symbol, decimals = self.get_token_params(token)
+            symbol, decimals = self._get_token_params(token)
             token = Token(symbol, token, self.chain, decimals)
 
         # если передан нативный токен
-        if token.type == TokenTypes.NATIVE:
-            tx = self.prepare_tx(amount, to_address)
+        if token.type_token == TokenTypes.NATIVE:
+            tx = self._prepare_tx(amount, to_address)
             if balance.wei < amount.wei:
                 multiplier = random.uniform(1.05, 1.1)
                 tx['value'] = int(balance.wei - tx['maxFeePerGas'] * 200000 * multiplier)
         else:
             if balance.wei < amount.wei:
                 amount = balance
-            contract = self.get_contract(token)
-            tx_params = self.prepare_tx()
+            contract = self._get_contract(token)
+            tx_params = self._prepare_tx()
             tx = contract.functions.transfer(to_address, amount.wei).build_transaction(tx_params)
 
-        hash = self.sing_and_send(tx)
+        hash = self._sing_and_send(tx)
         message = f'send {amount.ether_float} {token.symbol} to {to_address}'
         logger.info(f'Транзакция отправлена [{message}] tx hash: {hash}')
         return hash
 
-    def prepare_tx(self, value: Optional[Amount] = None,
+    def _prepare_tx(self, value: Optional[Amount] = None,
                    to_address: Optional[str | ChecksumAddress] = None) -> dict:
         """
         Подготовка параметров транзакции
@@ -151,7 +152,7 @@ class Onchain:
         """
         random_multiplier = random.uniform(1.05, 1.1)
         base_fee = self.w3.eth.gas_price
-        priority_fee = self.get_priority_fee()
+        priority_fee = self._get_priority_fee()
         max_fee = int((base_fee + priority_fee) * random_multiplier)
 
         tx_params = {
@@ -180,7 +181,7 @@ class Onchain:
             return Tokens.get_token_by_symbol('WETH', self.chain)
         return token
 
-    def get_allowance(self, token: Token, spender: str | ChecksumAddress | ContractRaw) -> Amount:
+    def _get_allowance(self, token: Token, spender: str | ChecksumAddress | ContractRaw) -> Amount:
         """
         Получение разрешенной суммы токенов на снятие
         :param token: объект Token
@@ -193,11 +194,11 @@ class Onchain:
         if isinstance(spender, str):
             spender = Web3.to_checksum_address(spender)
 
-        contract = self.get_contract(token)
+        contract = self._get_contract(token)
         allowance = contract.functions.allowance(self.account.address, spender).call()
         return Amount(allowance, decimals=token.decimals, wei=True)
 
-    def approve(self, token: Token, amount: Amount | int | float,
+    def _approve(self, token: Token, amount: Amount | int | float,
                 spender: str | ChecksumAddress | ContractRaw) -> None:
 
         """
@@ -208,10 +209,10 @@ class Onchain:
         :return: None
         """
 
-        if token.type == TokenTypes.NATIVE:
+        if token.type_token == TokenTypes.NATIVE:
             return
 
-        if self.get_allowance(token, spender).wei >= amount.wei:
+        if self._get_allowance(token, spender).wei >= amount.wei:
             return
 
         if isinstance(amount, (int, float)):
@@ -220,15 +221,15 @@ class Onchain:
         if isinstance(spender, ContractRaw):
             spender = spender.address
 
-        contract = self.get_contract(token)
-        tx_params = self.prepare_tx()
+        contract = self._get_contract(token)
+        tx_params = self._prepare_tx()
 
         tx = contract.functions.approve(spender, amount.wei).build_transaction(tx_params)
-        self.sing_and_send(tx)
+        self._sing_and_send(tx)
         message = f'approve {amount.ether_float} {token.symbol} to {spender}'
         logger.info(f'Транзакция отправлена {message}')
 
-    def sing_and_send(self, tx: dict) -> str:
+    def _sing_and_send(self, tx: dict) -> str:
         """
         Подпись и отправка транзакции
         :param tx: параметры транзакции

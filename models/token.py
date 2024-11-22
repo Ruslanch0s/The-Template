@@ -41,13 +41,13 @@ class Token(ContractRaw):
             address: str,
             chain: Chain,
             decimals: int = 18,
-            type: str = TokenTypes.ERC20,
+            type_token: str = TokenTypes.ERC20,
             abi_name: str = 'erc20'
     ):
         super().__init__(address, abi_name, chain)
         self.symbol = symbol
         self.decimals = decimals
-        self.type = type
+        self.type_token = type_token
         self.abi_name = abi_name
 
     def __str__(self) -> ChecksumAddress:

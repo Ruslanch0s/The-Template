@@ -7,14 +7,16 @@ from core.okx_py import OKX
 from core.onchain import Onchain
 from models.chain import Chain
 from models.account import Account
+from config import config
 
 
 class Bot:
-    def __init__(self, account: Account, chain: Chain) -> None:
+    def __init__(self, account: Account, chain: Chain = config.start_chain) -> None:
+        self.chain = chain
         self.account = account
         self.ads = Ads(account)
         self.metamask = Metamask(self.ads, account)
-        self.okx = OKX()
+        self.okx = OKX(account)
         self.excel = Excel(account)
         self.onchain = Onchain(account, chain)
 
@@ -31,5 +33,3 @@ class Bot:
         else:
             logger.error(f"Аккаунт {self.ads.profile_number} завершен с ошибкой {exc_val}")
         return True
-
-

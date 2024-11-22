@@ -7,6 +7,7 @@ from loguru import logger
 
 from config import config, Chains, Tokens
 from core.bot import Bot
+from core.onchain import Onchain
 from core.excel import Excel
 from utils.logging import init_logger
 from utils.utils import random_sleep, get_accounts, generate_password
@@ -40,7 +41,7 @@ def worker(account: Account) -> None:
     #     return
 
     # Создаем бота
-    with Bot(account, Chains.ARBITRUM_ONE) as bot:
+    with Bot(account) as bot:
         # Вызываем функцию activity и передаем в нее бота
         activity(bot)
 
@@ -66,8 +67,20 @@ def activity(bot: Bot):
     :param bot: бот
     :return: None
     """
-    bot.okx.get_currencies()
-    pass
+
+
+    tokens = Tokens.get_tokens(bot.chain)
+
+    for token in tokens:
+        balance = bot.onchain.get_balance(token=token)
+        logger.info(f"Баланс {token.symbol}: {balance}")
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

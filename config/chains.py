@@ -23,40 +23,45 @@ class Chains:
     - tx_type - тип транзакции, по умолчанию 2 (0 - Legacy, 2 - EIP-1559)
     - native_token - тикер нативного токена сети, по умолчанию 'ETH'
     - metamask_name - название сети в metamask, по умолчанию берется из параметра name
-
+    - okx_name - название сети в OKX, список сетей можно получить запустив метод bot.okx.get_chains()
 
     """
     ETHEREUM = Chain(
         name='ethereum',
         metamask_name='Ethereum Mainnet',
-        rpc='https://1rpc.io/ethereum',
-        chain_id=1
+        rpc='https://1rpc.io/eth',
+        chain_id=1,
+        okx_name='ERC20'
     )
 
     LINEA = Chain(
         name='linea',
         metamask_name='Linea Mainnet',
         rpc='https://1rpc.io/linea',
-        chain_id=59144
+        chain_id=59144,
+        okx_name='Linea'
     )
     ARBITRUM_ONE = Chain(
         name='arbitrum_one',
         metamask_name='Arbitrum One',
         rpc='https://1rpc.io/arb',
-        chain_id=42161
+        chain_id=42161,
+        okx_name='Arbitrum One'
     )
 
     TAIKO = Chain(
         name='taiko',
         rpc='https://taiko.drpc.org',
-        chain_id=167000
+        chain_id=167000,
+
     )
 
     BSC = Chain(
         name='bsc',
         rpc='https://1rpc.io/bnb',
         chain_id=56,
-        native_token='BNB'
+        native_token='BNB',
+        okx_name='BSC'
     )
 
     OP = Chain(
@@ -64,7 +69,8 @@ class Chains:
         rpc='https://1rpc.io/op',
         chain_id=10,
         native_token='ETH',
-        metamask_name='Optimism Mainnet'
+        metamask_name='Optimism Mainnet',
+        okx_name='Optimism'
     )
 
     @classmethod
@@ -88,6 +94,7 @@ class Chains:
                     if chain.name.upper() == name:
                         return chain
             raise ChainNameError(f'Chain {name} not found')
+
 
 
 if __name__ == '__main__':

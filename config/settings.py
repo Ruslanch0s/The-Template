@@ -1,8 +1,8 @@
 import os
 
-import dotenv
 from dotenv import load_dotenv
 
+from config.chains import Chains
 from models.patterns import Singleton
 
 
@@ -35,6 +35,9 @@ class Config(Singleton):
     is_mobile_proxy = False
     # адрес для запроса смены ip адреса мобильного прокси
     link_change_ip = ""
+
+    # в какой сети работает в ончейн (не относится к метамаску)
+    start_chain = Chains.ETHEREUM
 
     # id чата в телеграме, куда отправлять сообщения
     chat_id = '12345678'

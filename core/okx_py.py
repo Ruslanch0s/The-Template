@@ -1,18 +1,26 @@
 from __future__ import annotations
 
-from typing import Literal
-
+from typing import Literal, Optional
 
 from config import config
 
 import okx.Funding as Funding
 from loguru import logger
 
+from models.account import Account
+from models.amount import Amount
+from models.chain import Chain
+from models.token import Token
 from utils.utils import random_sleep
 
 
 class OKX:
-    def __init__(self):
+    """
+    Класс для работы с биржей OKX.
+    """
+
+    def __init__(self, account: Account) -> None:
+        self.account = account
         self.funding_api = Funding.FundingAPI(
             config.okx_api_key_main,
             config.okx_secret_key_main,
@@ -21,39 +29,72 @@ class OKX:
             debug=False
         )
 
-    def get_currencies(self):
+    def get_chains(self) -> None:
         """
-        Получение списка доступных токенов и сетей.
-        :return: список токенов
+        Выводит в терминал список сетей, которые можно использовать для вывода средств с биржи OKX.
+        :return: None
         """
         response = self.funding_api.get_currencies()
         data = response.get("data")
         if response.get("code") != "0":
-            logger.error(f"Не удалось получить список токенов: {response.get('msg')}")
+            logger.error(
+                f"{self.account.profile_number} Не удалось получить список токенов: {response.get('msg')}")
+        chains = set()
         for chain in data:
-            print(chain)
-
+            if chain.get("chain"):
+                chain = chain.get("chain").split("-")[1]
+                chains.add(f"'{chain}'")
+        print(*chains, sep=', ')
 
     def withdraw(
             self,
-            address: str,
-            chain: Literal["ERC20", "Linea"],
-            token: str,
-            amount: float
+            token: Token | str,
+            amount: int | float | Amount,
+            chain: Chain | Literal['DYDX', 'l', 'zkSync Era', 'Wax', 'ERC20', 'Ethereum Classic',
+            'Casper', 'Tezos', 'NULS', 'Harmony', 'Theta', 'Litecoin', 'BitcoinCash',
+            'Elrond', 'Conflux', 'Mina', 'Zilliqa', 'MIOTA', 'Cosmos', 'CELO',
+            'Ontology', 'Polygon (Bridged)', 'BSC', 'Khala', 'N3', 'TON',
+            'Polygon', 'OKTC', 'AELF', 'Metis (Token Transfer)', 'PlatON',
+            'FLOW', 'Linea', 'Avalanche X', 'Aptos', 'Fantom', 'Cortex',
+            'BRC20', 'Enjin Relay Chain', 'Flare', 'Siacoin', 'Layer 3', 'Moonbeam',
+            'Acala', 'Lisk', 'IOST', 'OASYS', 'Arweave', 'Starknet', 'EthereumPoW',
+            'NEAR', 'Klaytn', 'Stellar Lumens', 'TRC20', 'SUI', 'Avalanche C',
+            'Endurance Smart Chain', 'Cardano', 'ZetaChain', 'FEVM', 'Dogecoin',
+            'Terra Classic', 'CORE', 'ICON', 'Algorand', 'INJ', 'Moonriver', 'Crypto',
+            'Scroll', 'Dfinity', 'Chiliz Chain', 'X Layer', 'Optimism (V2)', 'Celestia',
+            'Chiliz 2.0 Chain', 'Base', 'Bitcoin', 'Kadena', 'EOS', 'Optimism',
+            'Digibyte', 'Hedera', 'Nano', 'Polkadot', 'Terra', 'Venom', 'Bitcoin SV',
+            'MERLIN Network', 'Solana', 'Gravity Alpha Mainnet', 'CFX_EVM', 'Lightning',
+            'Chia', 'Terra Classic (USTC)', 'Kusama', 'Ripple', 'Metis', 'Ravencoin',
+            'Filecoin', 'Arbitrum One', 'Astar', 'Quantum', 'Ronin'],
+            address: Optional[str] = None
     ) -> None:
         """
-        Вывод средств с биржи OKX
-        :param address:  Адрес кошелька
-        :param chain: сеть токена
-        :param token: токен
-        :param amount: сумма
+        Вывод средств с биржи OKX, на адрес профиля или указанный адрес. После вывода ожидает подтверждения транзакции.
+        :param address: адрес для вывода, если не указан, то на адрес профиля
+        :param chain: сеть вывода, можно передать объект Chain или строку с названием сети
+        :param token: токен для вывода, можно передать объект Token или строку с названием токена
+        :param amount: количество токенов для вывода, можно передать объект Amount или число
         :return: None
         """
+
+        if not address:
+            address = self.account.address
+
+        if isinstance(chain, Chain):
+            chain = chain.okx_name
+
+        if isinstance(token, Token):
+            token = token.symbol
+
+        if isinstance(amount, Amount):
+            amount = amount.ether_float
+
         token_with_chain = token + "-" + chain
         fee = self._get_withdrawal_fee(token, token_with_chain)
 
         try:
-            logger.info(f'{address}: Выводим с okx {amount} {token}')
+            logger.info(f'{self.account.profile_number}: Выводим с okx {amount} {token} на адрес {address}')
             response = self.funding_api.withdrawal(
                 ccy=token,
                 amt=amount,
@@ -64,12 +105,12 @@ class OKX:
             )
             if response.get("code") != "0":
                 raise Exception(
-                    f'{address}: Не удалось вывести {amount} {token}: {response.get("msg")}')
+                    f'{self.account.profile_number}: Не удалось вывести {amount} {token}: {response.get("msg")}')
             tx_id = response.get("data")[0].get("wdId")
             self._wait_confirm(tx_id)
-            logger.info(f'{address}: Успешно выведено {amount} {token}')
+            logger.info(f'{self.account.profile_number}: Успешно выведено {amount} {token}')
         except Exception as error:
-            logger.error(f'{address}: Не удалось вывести {amount} {token}: {error} ')
+            logger.error(f'{self.account.profile_number}: Не удалось вывести {amount} {token}: {error} ')
             raise error
 
     def _get_withdrawal_fee(self, token: str, token_with_chain: str):
@@ -84,7 +125,8 @@ class OKX:
             if network.get("chain") == token_with_chain:
                 return network.get("minFee")
 
-        logger.error(f" не могу получить сумму комиссии, проверьте значения symbolWithdraw и network")
+        logger.error(
+            f"{self.account.profile_number} не могу получить сумму комиссии, проверьте значения symbolWithdraw и network")
         return 0
 
     def _wait_confirm(self, tx_id: str) -> None:
@@ -97,8 +139,8 @@ class OKX:
             tx_info = self.funding_api.get_deposit_withdraw_status(wdId=tx_id)
             if tx_info.get("code") == "0":
                 if 'Withdrawal complete' in tx_info.get("data")[0].get("state"):
-                    logger.info(f"Транзакция {tx_id} завершена")
+                    logger.info(f"{self.account.profile_number} Транзакция {tx_id} завершена")
                     return
             random_sleep(10)
-        logger.error(f"Ошибка транзакция {tx_id} не завершена")
+        logger.error(f"{self.account.profile_number} Ошибка транзакция {tx_id} не завершена")
         raise Exception(f"Транзакция {tx_id} не завершена")
