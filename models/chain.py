@@ -7,14 +7,13 @@ class Chain:
     """
     Класс для хранения информации о сети. Информацию о сети можно искать тут https://chainid.network/chains.json
 
-    :param name - название сети, в формате snake_case, при инициализации
-    в класс Chains должно совпадать с именем переменной
-    :param rpc:  адрес провайдера в формате https://1rpc.io/ethereum, можно взять на https://chainlist.org/
-    :param chain_id: id сети, например 1 для Ethereum, можно искать тут https://chainid.network/chains.json
-    :param tx_type: тип транзакции, по умолчанию 2 (0 - Legacy, 2 - EIP-1559),  можно искать тут https://chainid.network/chains.json
-    :param native_token: тикер нативного токена сети, по умолчанию 'ETH'
-    :param metamask_name: название сети в metamask, по умолчанию берется из параметра name
-    :param okx_name: название сети в OKX, список сетей можно получить запустив метод bot.okx.get_chains()
+    - name - название сети, в формате snake_case, при инициализации в класс Chains должно совпадать с именем переменной
+    - param rpc:  адрес провайдера в формате https://1rpc.io/ethereum, можно взять на https://chainlist.org/
+    - chain_id: id сети, например 1 для Ethereum, можно искать тут https://chainid.network/chains.json
+    - tx_type: тип транзакции, по умолчанию 2 (0 - Legacy, 2 - EIP-1559),  можно искать тут https://chainid.network/chains.json
+    - native_token: тикер нативного токена сети, по умолчанию 'ETH'
+    - metamask_name: название сети в metamask, по умолчанию берется из параметра name
+    - okx_name: название сети в OKX, список сетей можно получить запустив метод bot.okx.get_chains()
     """
 
     def __init__(

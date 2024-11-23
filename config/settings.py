@@ -12,8 +12,8 @@ class Config(Singleton):
     # откуда брать аккаунты
     accounts_source = 'excel'  # txt, excel
 
-    # type work
-    is_browser_run = False  # Запускать браузер
+    # запускать ли браузер, если False, то браузер не запустится
+    is_browser_run = True  # Запускать браузер или нет
 
     # формат даты в excel, не меняйте если не знаете что делаете
     date_format = '%d/%m/%Y %H:%M:%S'
@@ -22,7 +22,7 @@ class Config(Singleton):
     is_random = False  # Если True, то аккаунты будут выбираться случайно, иначе по порядку
 
     # пауза между запуском профилей в секундах от и до
-    pause_between_profile = [10, 20]
+    pause_between_profile = [600, 1200]
 
     # укажите сколько раз прокрутить все аккаунты
     cycle = 10000
@@ -37,7 +37,7 @@ class Config(Singleton):
     link_change_ip = ""
 
     # в какой сети работает в ончейн (не относится к метамаску)
-    start_chain = Chains.ETHEREUM
+    start_chain = Chains.ARBITRUM_ONE
 
     # id чата в телеграме, куда отправлять сообщения
     chat_id = '12345678'
