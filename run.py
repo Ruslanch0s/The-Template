@@ -40,7 +40,7 @@ def worker(account: Account) -> None:
     # if not schedule(account):
     #     return
 
-    # Создаем бота
+    # Создаем бота, если в конфиге включен is_browser_run, то будет запущен браузер
     with Bot(account) as bot:
         # Вызываем функцию activity и передаем в нее бота
         activity(bot)
@@ -48,16 +48,16 @@ def worker(account: Account) -> None:
     random_sleep(*config.pause_between_profile)
 
 
-def schedule(account: Account) -> bool:
+def schedule_and_filter(account: Account) -> bool:
     """
-    Функция для работы с аккаунтом, создает бота и передает его в функцию activity
+    Функция для фильтрации аккаунтов по времени и дополнительной логике, чтобы пропускать те аккаунты, которые не нужно обрабатывать.
     :param account: аккаунт
-    :return: None
+    :return: bool, если True, то аккаунт будет обработан, иначе пропущен
     """
     excel = Excel(account)
-    date = excel.get_date('Активность 1')
-    if date < datetime.datetime.now() - datetime.timedelta(days=5):
-        return True
+    # date = excel.get_date('Последн. транз')
+    # if date < 20/11/2024:
+    #     return True
     return False
 
 
@@ -67,26 +67,8 @@ def activity(bot: Bot):
     :param bot: бот
     :return: None
     """
-    # sub = bot.excel.get_cell('Суб аккаунты') # 0x...fjh
-    #
-    # amount = bot.onchain.get_balance(Tokens.USDC_OP)
-    # bot.onchain.send_token(amount, sub , Tokens.USDC_OP)
-    #
-    # onchain_bsc = Onchain(bot.account, Chains.BSC)
-    # amount = onchain_bsc.get_balance(Tokens.USDC_BSC)
-    # onchain_bsc.send_token(amount, sub, Tokens.USDC_BSC)
+    print(bot.excel.acc_row)
 
-    balance = bot.onchain.get_balance()
-    bot.excel.set_cell('Баланс', balance.ether)
-
-
-
-
-
-
-
-
-    pass
 
 
 if __name__ == '__main__':

@@ -14,26 +14,46 @@ from models.account import Account
 
 class Excel:
     """
-    Класс для работы с excel файлами
+    Класс для работы с excel таблицей.
+    По стандарту создает подключение к таблице 'config/data/accounts.xlsx'.
+
+    Можно создать объект отдельно от бота, передав туда аккаунт и название таблицы.
     """
 
-    def __init__(self, account: Optional[Account] = None) -> None:
+    def __init__(self, account: Optional[Account] = None, file: Optional[str] = None) -> None:
+        """
+        Инициализация класса
+        :param account: объект аккаунта
+        :param file: название файла excel с расширением таблицы, если не указано, берется 'accounts.xlsx'.
+        """
         self.account = account
-        self.file = config.PATH_EXCEL
-        self.table = self._get_table()
-        self.sheet: Worksheet = self.table.active
+        self._file = self._get_file(file)
+        self._table = self._get_table()
+        self._sheet: Worksheet = self._table.active
         if account:
             self.acc_row = self._find_acc_row(str(self.account.profile_number))
+
+    def _get_file(self, file: Optional[str]) -> str:
+        """
+        Получает имя файла, если имя файла не указано, берет из настроек.
+        :param file: имя файла
+        :return: имя файла
+        """
+        if not file:
+            file = config.PATH_EXCEL
+            return file
+        file = os.path.join(config.PATH_DATA, file)
+        return file
 
     def _get_table(self) -> Workbook:
         """
         Получает таблицу из файла, если файла нет, создает его.
         :return: объект таблицы
         """
-        if not os.path.exists(self.file):  # Если файл не существует, создаем его
+        if not os.path.exists(self._file):  # Если файл не существует, создаем его
             table = self._create_excel()
         else:
-            table = load_workbook(self.file)
+            table = load_workbook(self._file)
         return table
 
     def _create_excel(self) -> Workbook:
@@ -43,12 +63,13 @@ class Excel:
         """
         table = Workbook()  # Создаем новую таблицу
         table.active["A1"] = "Profile Number"  # Заполняем ячейки
-        table.active["B1"] = "Address"  # Заполняем ячейки
-        table.active["C1"] = "Password"  # Заполняем ячейки
-        table.active["D1"] = "Seed"  # Заполняем ячейки
-        table.active["E1"] = "Private Key"  # Заполняем ячейки
-        table.active["F1"] = "Proxy"  # Заполняем ячейки
-        table.save(self.file)  # Сохраняем таблицу
+        if self._file == config.PATH_EXCEL:
+            table.active["B1"] = "Address"  # Заполняем ячейки
+            table.active["C1"] = "Password"  # Заполняем ячейки
+            table.active["D1"] = "Seed"  # Заполняем ячейки
+            table.active["E1"] = "Private Key"  # Заполняем ячейки
+            table.active["F1"] = "Proxy"  # Заполняем ячейки
+        table.save(self._file)  # Сохраняем таблицу
         return table
 
     def _find_acc_row(self, profile_number: str) -> int:
@@ -57,11 +78,12 @@ class Excel:
         :param profile_number: номер профиля
         :return: номер строки
         """
-        for row in self.sheet.iter_rows(min_row=2, max_col=1):
+        for row in self._sheet.iter_rows(min_row=2, max_col=1):
             if str(row[0].value) == profile_number:
                 return row[0].row
-        add_row = self.sheet.max_row + 1
-        self.sheet.cell(row=add_row, column=1, value=profile_number)
+        add_row = self._sheet.max_row + 1
+        self._sheet.cell(row=add_row, column=1, value=profile_number)
+        self._table.save(self._file)
         return add_row
 
     def add_row(self, values: list) -> None:
@@ -70,10 +92,10 @@ class Excel:
         :param values: список значений
         :return: None
         """
-        self.sheet.append(values)
-        self.table.save(self.file)
+        self._sheet.append(values)
+        self._table.save(self._file)
 
-    def set_cell(self, column_name: str, value: str, row: Optional[int] = None) -> None:
+    def set_cell(self, column_name: str, value: str | int | float, row: Optional[int] = None) -> None:
         """
         Устанавливает значение в ячейку по имени столбца в строке аккаунта.
         :param column_name: имя столбца
@@ -84,11 +106,8 @@ class Excel:
         row = self.acc_row if not row else row
 
         col_num = self.find_column(column_name)
-        if not col_num:
-            logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
-            col_num = self.add_column(column_name)
-        self.sheet.cell(row=row, column=col_num, value=value)
-        self.table.save(self.file)
+        self._sheet.cell(row=row, column=col_num, value=value)
+        self._table.save(self._file)
 
     def add_column(self, column_name: str) -> int:
         """
@@ -96,22 +115,23 @@ class Excel:
         :param column_name: имя столбца
         :return: номер столбца
         """
-        col_num = self.sheet.max_column + 1
-        self.sheet.cell(row=1, column=col_num, value=column_name)
-        self.table.save(self.file)
+        col_num = self._sheet.max_column + 1
+        self._sheet.cell(row=1, column=col_num, value=column_name)
+        self._table.save(self._file)
         return col_num
 
     def find_column(self, column_name: str) -> int:
         """
-        Находит номер столбца по имени.
+        Находит номер столбца по имени. Если столбец не найден, создает его.
         :param column_name: имя столбца
         :return: номер столбца
         """
-        for row in self.sheet.iter_rows(max_row=1):
+        for row in self._sheet.iter_rows(max_row=1):
             for cell in row:
                 if cell.value == column_name:
                     return cell.column
-        return 0
+        logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
+        return self.add_column(column_name)
 
     def get_cell(self, column_name: str, row: Optional[int] = None) -> str | int | None:
         """
@@ -124,7 +144,7 @@ class Excel:
 
         col_num = self.find_column(column_name)
 
-        return self.sheet.cell(row=row, column=col_num).value
+        return self._sheet.cell(row=row, column=col_num).value
 
     def get_column(self, column_name: str) -> list[str | int | None]:
         """
@@ -133,10 +153,8 @@ class Excel:
         :return: список значений столбца
         """
         col_num = self.find_column(column_name)
-        if not col_num:
-            raise ValueError(f"Столбец '{column_name}' не найден")
         column_values = []
-        for raw in self.sheet.iter_cols(min_col=col_num, max_col=col_num, min_row=2):
+        for raw in self._sheet.iter_cols(min_col=col_num, max_col=col_num, min_row=2):
             for cell in raw:
                 column_values.append(cell.value)
 
@@ -150,7 +168,7 @@ class Excel:
         """
         row = self.acc_row if not row else row
         row_values = []
-        for raw in self.sheet.iter_rows(min_row=row, max_row=row):
+        for raw in self._sheet.iter_rows(min_row=row, max_row=row):
             for cell in raw:
                 row_values.append(cell.value)
 
@@ -166,18 +184,15 @@ class Excel:
         row = self.acc_row if not row else row
 
         col_num = self.find_column(column_name)
-        if not col_num:
-            logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
-            col_num = self.add_column(column_name)
-        cell = self.sheet.cell(row=row, column=col_num)
+        cell = self._sheet.cell(row=row, column=col_num)
 
         if cell.value is None:
             cell.value = 0
-            self.table.save(self.file)
+            self._table.save(self._file)
         elif isinstance(cell.value, str):
             if cell.value.isdigit():
                 cell.value = int(cell.value)
-                self.table.save(self.file)
+                self._table.save(self._file)
             else:
                 raise TypeError(f"Значение в столбце '{column_name}' не является числом")
 
@@ -194,10 +209,7 @@ class Excel:
         row = self.acc_row if not row else row
 
         col_num = self.find_column(column_name)
-        if not col_num:
-            logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
-            col_num = self.add_column(column_name)
-        cell = self.sheet.cell(row=row, column=col_num)
+        cell = self._sheet.cell(row=row, column=col_num)
 
         if cell.value is None:
             cell.value = 0
@@ -208,7 +220,7 @@ class Excel:
                 raise TypeError(f"Значение в столбце '{column_name}' не является числом")
 
         cell.value += number
-        self.table.save(self.file)
+        self._table.save(self._file)
         return cell.value
 
     def set_date(self, column_name: str, row: Optional[int] = None) -> None:
@@ -222,12 +234,9 @@ class Excel:
         row = self.acc_row if not row else row
 
         col_num = self.find_column(column_name)
-        if not col_num:
-            logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
-            col_num = self.add_column(column_name)
 
-        self.sheet.cell(row=row, column=col_num, value=datetime.now().strftime(config.date_format))
-        self.table.save(self.file)
+        self._sheet.cell(row=row, column=col_num, value=datetime.now().strftime(config.date_format))
+        self._table.save(self._file)
 
     def get_date(self, column_name: str, row: Optional[int] = None) -> datetime:
         """
@@ -240,11 +249,8 @@ class Excel:
         row = self.acc_row if not row else row
 
         col_num = self.find_column(column_name)
-        if not col_num:
-            logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
-            col_num = self.add_column(column_name)
 
-        date_str = self.sheet.cell(row=row, column=col_num).value
+        date_str = self._sheet.cell(row=row, column=col_num).value
         if date_str:
             date_object = datetime.strptime(date_str, config.date_format)
             return date_object
