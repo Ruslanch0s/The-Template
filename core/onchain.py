@@ -26,7 +26,6 @@ class Onchain:
             if not self.account.address:
                 self.account.address = self.w3.eth.account.from_key(self.account.private_key).address
 
-
     def _get_token_params(self, token_address: str | ChecksumAddress) -> tuple[str, int]:
         """
         Получение параметров токена (symbol, decimals) по адресу контракта токена
@@ -102,14 +101,15 @@ class Onchain:
         return int(median_priority_fee * random_multiplier)
 
     def send_token(self,
-                   amount: Amount,
+                   amount: Amount | int | float,
                    to_address: str | ChecksumAddress,
                    token: Optional[Token, str, ChecksumAddress] = None
                    ) -> str:
         """
         Отправка любых типов токенов, если не указан адрес контракта, то отправка нативного токена
-        :param amount: объект Amount с суммой
+        :param amount: сумма перевода, может быть объектом Amount, int или float
         :param to_address: адрес получателя
+        :param token: объект Token или адрес контракта токена
         :return: хэш транзакции
         """
         to_address = to_checksum(to_address)
@@ -124,12 +124,22 @@ class Onchain:
             symbol, decimals = self._get_token_params(token)
             token = Token(symbol, token, self.chain, decimals)
 
+        multiplier = random.uniform(1.05, 1.1)
+
+        if not isinstance(amount, Amount):
+            amount = Amount(amount, decimals=token.decimals)
+
         # если передан нативный токен
         if token.type_token == TokenTypes.NATIVE:
             tx = self._prepare_tx(amount, to_address)
-            if balance.wei < amount.wei:
-                multiplier = random.uniform(1.05, 1.1)
-                tx['value'] = int(balance.wei - tx['maxFeePerGas'] * 200000 * multiplier)
+            fee_spend = 21000 * tx['maxFeePerGas'] * multiplier
+            if balance.wei - fee_spend - amount.wei < 0:
+                logger.error(
+                    f'{self.account.profile_number} Недостаточно средств для отправки транзакции, баланс: {balance.ether_float} ETH, сумма: {amount.ether_float} ETH')
+                raise ValueError(
+                    f'{self.account.profile_number} Недостаточно средств для отправки транзакции')
+            tx['value'] = amount.wei
+
         else:
             if balance.wei < amount.wei:
                 amount = balance
@@ -143,7 +153,7 @@ class Onchain:
         return hash
 
     def _prepare_tx(self, value: Optional[Amount] = None,
-                   to_address: Optional[str | ChecksumAddress] = None) -> dict:
+                    to_address: Optional[str | ChecksumAddress] = None) -> dict:
         """
         Подготовка параметров транзакции
         :param value: сумма перевода ETH, если ETH нужно приложить к транзакции
@@ -199,7 +209,7 @@ class Onchain:
         return Amount(allowance, decimals=token.decimals, wei=True)
 
     def _approve(self, token: Token, amount: Amount | int | float,
-                spender: str | ChecksumAddress | ContractRaw) -> None:
+                 spender: str | ChecksumAddress | ContractRaw) -> None:
 
         """
         Одобрение транзакции на снятие токенов
@@ -238,7 +248,7 @@ class Onchain:
         random_multiplier = random.uniform(1.05, 1.1)
         tx['gas'] = int(self.w3.eth.estimate_gas(tx) * random_multiplier * 1.1)
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.account.private_key)
-        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
         tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_receipt.transactionHash.hex()
 

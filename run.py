@@ -10,7 +10,7 @@ from core.bot import Bot
 from core.onchain import Onchain
 from core.excel import Excel
 from utils.logging import init_logger
-from utils.utils import random_sleep, get_accounts, generate_password
+from utils.utils import random_sleep, get_accounts, generate_password, get_price_token
 
 
 def main():
@@ -67,20 +67,26 @@ def activity(bot: Bot):
     :param bot: бот
     :return: None
     """
+    # sub = bot.excel.get_cell('Суб аккаунты') # 0x...fjh
+    #
+    # amount = bot.onchain.get_balance(Tokens.USDC_OP)
+    # bot.onchain.send_token(amount, sub , Tokens.USDC_OP)
+    #
+    # onchain_bsc = Onchain(bot.account, Chains.BSC)
+    # amount = onchain_bsc.get_balance(Tokens.USDC_BSC)
+    # onchain_bsc.send_token(amount, sub, Tokens.USDC_BSC)
+
+    balance = bot.onchain.get_balance()
+    bot.excel.set_cell('Баланс', balance.ether)
 
 
-    tokens = Tokens.get_tokens(bot.chain)
-
-    for token in tokens:
-        balance = bot.onchain.get_balance(token=token)
-        logger.info(f"Баланс {token.symbol}: {balance}")
 
 
 
 
 
 
-
+    pass
 
 
 if __name__ == '__main__':

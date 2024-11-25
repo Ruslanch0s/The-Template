@@ -79,7 +79,7 @@ def get_accounts_from_txt() -> tuple[list[str], list[str], list[str], list[str],
     # Получаем данные из файлов
     profile_numbers = get_list_from_file("profile_numbers.txt")
     passwords = get_list_from_file("passwords.txt")
-    addresses = get_list_from_file("addresses")
+    addresses = get_list_from_file("addresses.txt")
     private_keys = get_list_from_file("private_keys.txt")
     seeds = get_list_from_file("seeds.txt")
     proxies = get_list_from_file("proxies.txt")
@@ -218,6 +218,17 @@ def to_checksum(address: Optional[str | ChecksumAddress]) -> ChecksumAddress:
     if address and isinstance(address, str):
         address = Web3.to_checksum_address(address)
     return address
+
+
+def get_price_token(symbol: str) -> float:
+    """
+    Получает цену токена c binance по запросу к API https://api.binance.com/api/v3/ticker/24hr?symbol={symbol}USDT.
+    :param token: тикер токена (например, ETH)
+    :return: цена токена в USDT
+    """
+    url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={symbol.upper()}USDT"
+    response = get_response(url)
+    return float(response.get('weightedAvgPrice', 0))
 
 
 def timeout(timeout):
