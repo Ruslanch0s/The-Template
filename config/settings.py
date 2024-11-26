@@ -56,8 +56,6 @@ class Config(Singleton):
 
     bot_token = os.getenv("BOT_TOKEN")
 
-    DEFAULT_TIMEOUT = 360  # таймаут выполнения активности, пока не реализовано
-
     okx_api_key_main = os.getenv("OKX_API_KEY_MAIN")
     okx_secret_key_main = os.getenv("OKX_SECRET_KEY_MAIN")
     okx_passphrase_main = os.getenv("OKX_PASSPHRASE_MAIN")
