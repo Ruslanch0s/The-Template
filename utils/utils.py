@@ -56,9 +56,13 @@ def get_accounts() -> list[Account]:
     combined_data = filler(length, *accounts_raw_data)
     logger.info(f"Извлечено {length} аккаунтов")
 
+    accounts = []
+
     # ленивый генератор аккаунтов
     for profile_number, address, password, private_key, seed, proxies in combined_data:
-        yield Account(profile_number, address, password, private_key, seed, proxies)
+        accounts.append(Account(profile_number, address, password, private_key, seed, proxies))
+
+    return accounts
 
 
 def get_from_excel() -> tuple[list[str], list[str], list[str], list[str], list[str], list[str]]:
