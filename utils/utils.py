@@ -124,8 +124,9 @@ def get_list_from_file(
     file_path = os.path.join(config.PATH_DATA, name)
 
     if not os.path.exists(file_path):
-        logger.error(f"Файл {name} не найден")
-        exit(1)
+        logger.error(f"Файл не найден: {file_path}, создали пустой файл")
+        with open(file_path, "w") as file:
+            file.write("")
 
     if check_empty and os.stat(file_path).st_size == 0:
         logger.error(f"Файл пустой: {file_path}")
