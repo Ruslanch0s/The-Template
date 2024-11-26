@@ -12,8 +12,8 @@ class Config(Singleton):
     # откуда брать аккаунты
     accounts_source = 'excel'  # txt, excel
 
-    # запускать ли браузер, если False, то браузер не запустится
-    is_browser_run = True  # Запускать браузер или нет
+    # запускать ли браузер, если False, будет работать без браузера
+    is_browser_run = False  # Запускать браузер или нет
 
     # формат даты в excel, не меняйте если не знаете что делаете
     date_format = '%d/%m/%Y %H:%M:%S'
@@ -21,11 +21,16 @@ class Config(Singleton):
     # случайный порядок аккаунтов
     is_random = False  # Если True, то аккаунты будут выбираться случайно, иначе по порядку
 
+    # использовать расписание и фильтрацию аккаунтов
+    is_schedule = False  # Если True, то будет использоваться расписание и фильтрация аккаунтов
+
     # пауза между запуском профилей в секундах от и до
-    pause_between_profile = [600, 1200]
+    pause_between_profile = [1, 2]
 
     # укажите сколько раз прокрутить все аккаунты
     cycle = 10000
+    # укажите какую паузу делать перед новым циклом запуска профилей в секундах от и до
+    pause_between_cycle = [100, 200]
 
     # нужно ли устанавливать прокси в профиль ADS
     set_proxy = False
@@ -37,10 +42,12 @@ class Config(Singleton):
     link_change_ip = ""
 
     # в какой сети работает в ончейн (не относится к метамаску)
-    start_chain = Chains.ARBITRUM_ONE
+    start_chain = Chains.LINEA
 
     # id чата в телеграме, куда отправлять сообщения
     chat_id = '12345678'
+    # типы логов для отправки в телеграм
+    alert_types = ["CRITICAL", "SUCCESS"]  # "ERROR", "WARNING", "INFO", "DEBUG"
 
     # адрес расширения в браузере ADS
     metamask_url = "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html"

@@ -14,11 +14,12 @@ def filter_record(record: dict) -> bool:
     :param record: запись лога
     :return: True
     """
-    if record["level"].name in ["CRITICAL", "SUCCESS", "ERROR"]:
-        send_telegram_message(record["message"])
+    if config.chat_id and config.bot_token:
+        if record["level"].name in config.alert_types:
+            send_telegram_message(record["message"])
 
-    if record["extra"].get("telegram"):
-        send_telegram_message(record["message"])
+        if record["extra"].get("telegram"):
+            send_telegram_message(record["message"])
 
     return True  # Продолжаем обработку логов
 

@@ -33,6 +33,15 @@ class Excel:
         if account:
             self.acc_row = self._find_acc_row(str(self.account.profile_number))
 
+    def connect_account(self, account: Account) -> None:
+        """
+        Подключает аккаунт к таблице. Нужен чтобы можно было использовать один объект Excel для нескольких аккаунтов.
+        :param account: объект аккаунта
+        :return: None
+        """
+        self.account = account
+        self.acc_row = self._find_acc_row(str(self.account.profile_number))
+
     def _get_file(self, file: Optional[str]) -> str:
         """
         Получает имя файла, если имя файла не указано, берет из настроек.
@@ -148,7 +157,7 @@ class Excel:
 
     def get_column(self, column_name: str) -> list[str | int | None]:
         """
-        Возвращает список значений столбца по имени.
+        Возвращает список значений столбца по имени. Если в ячейке пусто, возвращает None.
         :param column_name: имя столбца
         :return: список значений столбца
         """
@@ -257,3 +266,27 @@ class Excel:
         logger.error(
             f"Не нашли дату в столбце '{column_name}' у аккаунта {self.account.profile_number}, возвращаем старую дату")
         return datetime.now().replace(year=2000)
+
+    def get_counters(self, column_name: str) -> list[int | float]:
+        """
+        Возвращает список значений счетчиков из столбца.
+        Преобразует значения в числа, если это возможно.
+        Если ячейка пустая, возвращает 0.
+        :param column_name: имя столбца
+        :return: список значений счетчиков
+        """
+        col_num = self.find_column(column_name)
+        column_values = []
+        for raw in self._sheet.iter_cols(min_col=col_num, max_col=col_num, min_row=2):
+            for cell in raw:
+                if cell.value is None:
+                    cell.value = 0
+                elif isinstance(cell.value, str):
+                    if cell.value.isdigit():
+                        cell.value = int(cell.value)
+                    if cell.value.replace('.', '', 1).isdigit():
+                        cell.value = float(cell.value)
+
+                column_values.append(cell.value)
+        self._table.save(self._file)
+        return column_values

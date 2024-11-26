@@ -19,6 +19,16 @@ from core.excel import Excel
 from models.account import Account
 
 
+def shuffle_account(accounts: list[Account]) -> None:
+    """
+    Перемешивает аккаунты
+    :param accounts: список аккаунтов
+    :return: None
+    """
+    if config.is_random:
+        random.shuffle(accounts)
+
+
 def send_telegram_message(message: str) -> None:
     """
     Отправляет сообщение в телеграм
@@ -45,10 +55,6 @@ def get_accounts() -> list[Account]:
     # Заполняем списки до нужной длины
     combined_data = filler(length, *accounts_raw_data)
     logger.info(f"Извлечено {length} аккаунтов")
-
-    if config.is_random:
-        # Перемешиваем данные
-        random.shuffle(combined_data)
 
     # ленивый генератор аккаунтов
     for profile_number, address, password, private_key, seed, proxies in combined_data:
@@ -242,3 +248,4 @@ def timeout(timeout):
         return wrapper
 
     return decorator
+
