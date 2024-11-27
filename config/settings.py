@@ -13,7 +13,7 @@ class Config(Singleton):
     accounts_source = 'excel'  # txt, excel
 
     # запускать ли браузер, если False, будет работать без браузера
-    is_browser_run = False  # Запускать браузер или нет
+    is_browser_run = True  # Запускать браузер или нет
 
     # формат даты в excel, не меняйте если не знаете что делаете
     date_format = '%d/%m/%Y %H:%M:%S'
@@ -33,9 +33,9 @@ class Config(Singleton):
     pause_between_cycle = [100, 200]
 
     # нужно ли устанавливать прокси в профиль ADS
-    set_proxy = False
+    set_proxy = False  # формат ip:port:login:password
     # нужно ли проверять прокси перед использованием
-    check_proxy = False
+    check_proxy = False  # формат ip:port:login:password
     # поставьте True, если используете мобильный прокси
     is_mobile_proxy = False
     # адрес для запроса смены ip адреса мобильного прокси

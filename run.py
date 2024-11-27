@@ -10,7 +10,8 @@ from core.bot import Bot
 from core.onchain import Onchain
 from core.excel import Excel
 from utils.logging import init_logger
-from utils.utils import random_sleep, get_accounts, generate_password, get_price_token, shuffle_account
+from utils.utils import random_sleep, get_accounts, generate_password, get_price_token, shuffle_account, \
+    get_multiplayer
 
 
 def main():
@@ -60,7 +61,7 @@ def schedule_and_filter(accounts: list[Account]) -> list[Account]:
     Функция для фильтрации аккаунтов по времени и дополнительной логике,
     чтобы пропускать те аккаунты, которые не нужно запускать.
     Перебирает аккаунты через фильтры и возвращает новый список аккаунтов для работы.
-    :param account: аккаунт
+    :param accounts: список аккаунтов
     :return: список аккаунтов для работы
     """
     # если фильтрация аккаунтов не включена, возвращаем все аккаунты
@@ -115,8 +116,7 @@ def activity(bot: Bot):
     :param bot: бот
     :return: None
     """
-    print(bot.excel.acc_row)
-
+    pass
 
 if __name__ == '__main__':
     main()
