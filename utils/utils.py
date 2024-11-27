@@ -242,6 +242,14 @@ def get_price_token(symbol: str) -> float:
     return float(response.get('weightedAvgPrice', 0))
 
 
+def get_multiplayer(min_mult: float = 1.02, max_mult: float = 1.05) -> float:
+    """
+    Получает множитель для рандомизации чисел. 1.00 =100%, 1.05 = 105%, 0.05 = 5%
+    :return: множитель
+    """
+    return random.uniform(min_mult, max_mult)
+
+
 def timeout(timeout):
     def decorator(func):
         @functools.wraps(func)
@@ -253,4 +261,3 @@ def timeout(timeout):
         return wrapper
 
     return decorator
-
