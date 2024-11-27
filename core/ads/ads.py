@@ -117,14 +117,17 @@ class Ads:
             logger.error(f"{self.profile_number}: Ошибка при закрытии страниц: {e}")
             raise e
 
-    def close_browser(self) -> None:
+    def _close_browser(self) -> None:
         """
         Останавливает браузер в ADS, номер профиля берется из self.profile_number
         :return: None
         """
         if not config.is_browser_run:
             return
-        self.browser.close()
+
+        if not self.browser.is_connected():
+            self.browser.close()
+
         self.pw.stop() if self.pw else None
         params = dict(serial_number=self.profile_number)
         url = self._local_api_url + 'browser/stop'
