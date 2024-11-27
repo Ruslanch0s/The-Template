@@ -183,7 +183,7 @@ class Excel:
 
         return row_values
 
-    def get_counter(self, column_name: str, row: Optional[int] = None) -> int:
+    def get_counter(self, column_name: str, row: Optional[int] = None) -> int | float:
         """
         Возвращает значение счетчика из ячейки в таблице Excel. Если ячейка пустая, возвращает 0 и записывает 0 в ячейку.
         :param column_name: имя столбца
@@ -201,6 +201,9 @@ class Excel:
         elif isinstance(cell.value, str):
             if cell.value.isdigit():
                 cell.value = int(cell.value)
+                self._table.save(self._file)
+            elif cell.value.replace('.', '', 1).isdigit():
+                cell.value = float(cell.value)
                 self._table.save(self._file)
             else:
                 raise TypeError(f"Значение в столбце '{column_name}' не является числом")
