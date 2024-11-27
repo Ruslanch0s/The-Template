@@ -25,7 +25,7 @@ class Bot:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.ads.close_browser()
+        self.ads._close_browser()
         if exc_type is None:
             logger.success(f"Аккаунт {self.account.profile_number} завершен")
         elif issubclass(exc_type, TimeoutError):
