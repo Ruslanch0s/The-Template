@@ -2,13 +2,13 @@ import datetime
 import random
 import time
 
-from eth_account import Account
 from loguru import logger
 
 from config import config, Chains, Tokens
 from core.bot import Bot
 from core.onchain import Onchain
 from core.excel import Excel
+from models.account import Account
 from utils.logging import init_logger
 from utils.utils import random_sleep, get_accounts, generate_password, get_price_token, shuffle_account, \
     get_multiplayer
@@ -86,17 +86,23 @@ def schedule_and_filter(accounts: list[Account]) -> list[Account]:
         # подключаем аккаунт к таблице
         excel.connect_account(account)
 
+        # проверяем статус профиля в таблице
+        status = excel.get_counter('Status')
+        if status != 'Work':
+            continue
+
         # получаем статистику по аккаунту
         swap_counter = excel.get_counter('Swap')
 
-        # если количество транзакций больше лимита
+        # если количество транзакций больше лимита, пропускаем.
         if swap_counter >= limit_swap_counter:
             continue
 
-        # если количество транзакций больше среднего
+        # если количество транзакций больше среднего, пропускаем.
         if swap_counter > average_counter:
             continue
 
+        # если последняя транзакция была недавно, пропускаем.
         last_trans = excel.get_date('Tx Date')
         if last_trans > limit_date:
             continue
@@ -106,8 +112,10 @@ def schedule_and_filter(accounts: list[Account]) -> list[Account]:
 
     logger.info(f"Выбрано {len(accounts_for_work)} аккаунтов для работы")
 
+
     # возвращаем список аккаунтов для работы
     return accounts_for_work
+
 
 
 def activity(bot: Bot):
