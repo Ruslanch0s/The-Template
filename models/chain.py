@@ -30,9 +30,9 @@ class Chain:
         self.name = name
         self.rpc = rpc
         self.chain_id = chain_id
+        self.metamask_name = metamask_name if metamask_name else name
         self.tx_type = tx_type
         self.native_token = native_token
-        self.metamask_name = metamask_name if metamask_name else name
         self.okx_name = okx_name if okx_name else name
 
     def __str__(self):

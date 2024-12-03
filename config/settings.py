@@ -13,6 +13,7 @@ class Config(Singleton):
     accounts_source = 'excel'  # txt, excel
 
     # запускать ли браузер, если False, будет работать без браузера
+    # если False, то не будет работать модуль ads
     is_browser_run = True  # Запускать браузер или нет
 
     # формат даты в excel, не меняйте если не знаете что делаете

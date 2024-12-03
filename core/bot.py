@@ -31,5 +31,9 @@ class Bot:
         elif issubclass(exc_type, TimeoutError):
             logger.error(f"Аккаунт {self.ads.profile_number} завершен по таймауту")
         else:
-            logger.error(f"Аккаунт {self.ads.profile_number} завершен с ошибкой {exc_val}")
+            if "object has no attribute 'page'" in str(exc_val):
+                logger.error(
+                    f"Аккаунт {self.ads.profile_number} завершен с ошибкой, возможно вы выключили работу браузера и пытаетесь сделать логику работу с браузером. {exc_val}'")
+            else:
+                logger.error(f"Аккаунт {self.ads.profile_number} завершен с ошибкой {exc_val}")
         return True
