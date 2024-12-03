@@ -165,7 +165,8 @@ class Excel:
         column_values = []
         for raw in self._sheet.iter_cols(min_col=col_num, max_col=col_num, min_row=2):
             for cell in raw:
-                column_values.append(cell.value)
+                if cell.value:
+                    column_values.append(cell.value)
 
         return column_values
 
