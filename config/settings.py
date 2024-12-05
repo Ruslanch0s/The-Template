@@ -9,6 +9,10 @@ from models.patterns import Singleton
 class Config(Singleton):
     load_dotenv()  # загрузка переменных окружения из файла .env
 
+    # скорость задержки между действиями в браузере в миллисекундах
+    # увеличьте если робот работает слишком быстро
+    speed = [800, 1200]
+
     # откуда брать аккаунты
     accounts_source = 'excel'  # txt, excel
 

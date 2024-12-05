@@ -88,7 +88,7 @@ class Ads:
                 # подключаемся к браузеру
                 random_sleep(4, 5)
                 self.pw = sync_playwright().start()
-                slow_mo = random.randint(800, 1200)
+                slow_mo = random.randint(*config.speed)
                 browser = self.pw.chromium.connect_over_cdp(endpoint, slow_mo=slow_mo)
                 if browser.is_connected():
                     return browser
