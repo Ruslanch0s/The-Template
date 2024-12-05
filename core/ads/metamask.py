@@ -3,7 +3,6 @@ from playwright.sync_api import Locator
 
 from core.ads.ads import Ads
 from config import config
-from core.excel import Excel
 from models.account import Account
 from models.chain import Chain
 from utils.utils import random_sleep, generate_password, write_text_to_file
@@ -106,7 +105,7 @@ class Metamask:
     def import_wallet(self) -> tuple[str, str, str]:
         """
         Импортирует кошелек в metamask, используя seed фразу. Возвращает адрес кошелька и пароль в виде кортежа.
-        :return: tuple (address, password, seed)
+        :return: tuple (address, seed, password)
         """
         self.open_metamask()
 
@@ -142,7 +141,7 @@ class Metamask:
         self.ads.click_if_exists(method='test_id', value='popover-close')
         address = self.get_address()
         seed_str = " ".join(seed_list)
-        return address, self.password, seed_str
+        return address, seed_str, self.password
 
     def get_address(self) -> str:
         """
