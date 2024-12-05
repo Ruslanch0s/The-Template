@@ -34,6 +34,7 @@ class Metamask:
         :return: tuple (address, seed, password)
         """
         self.open_metamask()
+        self.ads.page.get_by_test_id('onboarding-terms-checkbox').wait_for('visible')
         self.ads.page.get_by_test_id('onboarding-terms-checkbox').click()
         self.ads.page.get_by_test_id('onboarding-create-wallet').click()
         self.ads.page.get_by_test_id('metametrics-no-thanks').click()
@@ -84,30 +85,32 @@ class Metamask:
         if not self.password:
             raise Exception(f"{self.ads.profile_number} не указан пароль для авторизации в metamask")
 
-        if self.ads.page.get_by_test_id('unlock-password').count():
+        try:
+            self.ads.page.get_by_test_id('unlock-password').wait_for('visible', timeout=3000)
             self.ads.page.get_by_test_id('unlock-password').fill(self.password)
             self.ads.page.get_by_test_id('unlock-submit').click()
             random_sleep(3, 5)
-
             self.ads.click_if_exists(method='test_id', value='popover-close')
+        except:
+            logger.warning(f"{self.ads.profile_number} не смогли авторизоваться в metamask, вероятно уже авторизованы")
 
         if self.ads.page.get_by_test_id('account-options-menu-button').count():
             logger.info(f"{self.ads.profile_number} успешно авторизован в metamask")
         else:
-            logger.error(f"{self.ads.profile_number} ошибка авторизации в metamask")
+            logger.error(f"{self.ads.profile_number} ошибка авторизации в metamask, не смогли войти в кошелек")
 
-    def import_wallet(self) -> tuple[str, str]:
+    def import_wallet(self) -> tuple[str, str, str]:
         """
         Импортирует кошелек в metamask, используя seed фразу. Возвращает адрес кошелька и пароль в виде кортежа.
-        :return: tuple (address, password)
+        :return: tuple (address, password, seed)
         """
         self.open_metamask()
 
         seed_list = self.seed.split(" ")
         if not self.password:
             self.password = generate_password()
-
-        if self.ads.page.get_by_test_id('onboarding-create-wallet').count():
+        try:
+            self.ads.page.get_by_test_id('onboarding-create-wallet').wait_for('visible', timeout=5000)
             self.ads.page.get_by_test_id('onboarding-terms-checkbox').click()
             self.ads.page.get_by_test_id('onboarding-import-wallet').click()
             self.ads.page.get_by_test_id('metametrics-no-thanks').click()
@@ -122,8 +125,8 @@ class Metamask:
             self.ads.page.get_by_test_id('onboarding-complete-done').click()
             self.ads.page.get_by_test_id('pin-extension-next').click()
             self.ads.click_if_exists(method='test_id', value='pin-extension-done')
-
-        else:
+        except:
+            logger.warning(f"{self.ads.profile_number} в метамаске уже имеется счет, делаем сброс и импортируем новый")
             self.ads.page.get_by_text('Forgot password?').click()
             for i, word in enumerate(seed_list):
                 self.ads.page.get_by_test_id(f"import-srp__srp-word-{i}").fill(word)
@@ -135,7 +138,7 @@ class Metamask:
         self.ads.click_if_exists(method='test_id', value='popover-close')
         address = self.get_address()
         seed_str = " ".join(seed_list)
-        return address, self.password
+        return address, self.password, seed_str
 
     def get_address(self) -> str:
         """
@@ -223,6 +226,7 @@ class Metamask:
         :return: None
         """
         self.open_metamask()
+        self.ads.page.get_by_test_id("network-display").wait_for('visible', timeout=5000)
         chain_button = self.ads.page.get_by_test_id("network-display")
         if chain.metamask_name == chain_button.inner_text():
             return
@@ -245,6 +249,7 @@ class Metamask:
         """
         self.ads.open_url(self._url + "#settings/networks/add-network")
         random_sleep(1, 3)
+        self.ads.page.get_by_test_id('network-form-network-name').wait_for('visible', timeout=5000)
         self.ads.page.get_by_test_id('network-form-network-name').fill(chain.metamask_name)
         self.ads.page.get_by_test_id('test-add-rpc-drop-down').click()
         self.ads.page.get_by_role('button', name='Add RPC URL').click()
