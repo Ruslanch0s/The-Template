@@ -25,14 +25,8 @@ class Metamask:
         Открывает metamask, ждет появления кнопок подтверждающих прогрузку страницы.
         :return:
         """
-        try:
-            # пробуем открыть метамаск и ждем пока не появится окно ввода пароля
-            self.ads.open_url(self._url, self.ads.page.get_by_test_id('unlock-password'), timeout=5000)
-        except:
-            # если не получилось, значит метамаск уже открыт, и ждем пока не появится кнопка меню
-            self.ads.page.get_by_test_id('account-options-menu-button').wait_for(state='visible',
-                                                                                 timeout=5000)
-        random_sleep(1, 2)
+        self.ads.open_url(self._url)
+        random_sleep(3, 4)
 
     def create_wallet(self) -> tuple[str, str, str]:
         """
