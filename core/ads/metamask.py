@@ -34,7 +34,11 @@ class Metamask:
         :return: tuple (address, seed, password)
         """
         self.open_metamask()
-        self.ads.page.get_by_test_id('onboarding-terms-checkbox').wait_for('visible')
+        try:
+            self.ads.page.get_by_test_id('onboarding-terms-checkbox').wait_for(timeout=5000, state='visible')
+        except:
+            raise Exception(f"Ошибка создания кошелька {self.ads.profile_number} вероятно в метамаске уже есть счет, обнулите расширение")
+
         self.ads.page.get_by_test_id('onboarding-terms-checkbox').click()
         self.ads.page.get_by_test_id('onboarding-create-wallet').click()
         self.ads.page.get_by_test_id('metametrics-no-thanks').click()
@@ -86,7 +90,7 @@ class Metamask:
             raise Exception(f"{self.ads.profile_number} не указан пароль для авторизации в metamask")
 
         try:
-            self.ads.page.get_by_test_id('unlock-password').wait_for('visible', timeout=3000)
+            self.ads.page.get_by_test_id('unlock-password').wait_for(timeout=5000, state='visible')
             self.ads.page.get_by_test_id('unlock-password').fill(self.password)
             self.ads.page.get_by_test_id('unlock-submit').click()
             random_sleep(3, 5)
@@ -110,7 +114,7 @@ class Metamask:
         if not self.password:
             self.password = generate_password()
         try:
-            self.ads.page.get_by_test_id('onboarding-create-wallet').wait_for('visible', timeout=5000)
+            self.ads.page.get_by_test_id('onboarding-create-wallet').wait_for(timeout=5000, state='visible')
             self.ads.page.get_by_test_id('onboarding-terms-checkbox').click()
             self.ads.page.get_by_test_id('onboarding-import-wallet').click()
             self.ads.page.get_by_test_id('metametrics-no-thanks').click()
@@ -226,7 +230,7 @@ class Metamask:
         :return: None
         """
         self.open_metamask()
-        self.ads.page.get_by_test_id("network-display").wait_for('visible', timeout=5000)
+        self.ads.page.get_by_test_id("network-display").wait_for(timeout=5000, state='visible')
         chain_button = self.ads.page.get_by_test_id("network-display")
         if chain.metamask_name == chain_button.inner_text():
             return
@@ -249,7 +253,7 @@ class Metamask:
         """
         self.ads.open_url(self._url + "#settings/networks/add-network")
         random_sleep(1, 3)
-        self.ads.page.get_by_test_id('network-form-network-name').wait_for('visible', timeout=5000)
+        self.ads.page.get_by_test_id('network-form-network-name').wait_for(timeout=5000, state='visible')
         self.ads.page.get_by_test_id('network-form-network-name').fill(chain.metamask_name)
         self.ads.page.get_by_test_id('test-add-rpc-drop-down').click()
         self.ads.page.get_by_role('button', name='Add RPC URL').click()
