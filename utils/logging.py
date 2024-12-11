@@ -51,5 +51,11 @@ def init_logger():
         filter=filter_record
     )
     log_path = os.path.join(config.PATH_LOG, 'logs.log')
-    logger.add(log_path, level='DEBUG', rotation=datetime.timedelta(days=1), retention='15 days')
+    logger.add(
+        log_path,
+        level='DEBUG',
+        rotation=datetime.timedelta(days=1),
+        format="<light-cyan>{time:DD-MM HH:mm:ss}</light-cyan> | <level> {level: <8} </level><white> {file}:{function}: {line}</white> - {extra[profile_number]} <light-white>{message}</light-white>",
+        retention='15 days'
+    )
 
