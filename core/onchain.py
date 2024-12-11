@@ -135,7 +135,7 @@ class Onchain:
             fee_spend = 21000 * tx['maxFeePerGas'] * multiplier
             if balance.wei - fee_spend - amount.wei < 0:
                 logger.error(
-                    f'{self.account.profile_number} Недостаточно средств для отправки транзакции, баланс: {balance.ether_float} ETH, сумма: {amount.ether_float} ETH')
+                    f'{self.account.profile_number} Недостаточно средств для отправки транзакции, баланс: {balance} ETH, сумма: {amount} ETH')
                 raise ValueError(
                     f'{self.account.profile_number} Недостаточно средств для отправки транзакции')
             tx['value'] = amount.wei
@@ -148,7 +148,7 @@ class Onchain:
             tx = contract.functions.transfer(to_address, amount.wei).build_transaction(tx_params)
 
         hash = self._sing_and_send(tx)
-        message = f'send {amount.ether_float} {token.symbol} to {to_address}'
+        message = f'send {amount} {token.symbol} to {to_address}'
         logger.info(f'Транзакция отправлена [{message}] tx hash: {hash}')
         return hash
 
@@ -236,7 +236,7 @@ class Onchain:
 
         tx = contract.functions.approve(spender, amount.wei).build_transaction(tx_params)
         self._sing_and_send(tx)
-        message = f'approve {amount.ether_float} {token.symbol} to {spender}'
+        message = f'approve {amount} {token.symbol} to {spender}'
         logger.info(f'Транзакция отправлена {message}')
 
     def _sing_and_send(self, tx: dict) -> str:
