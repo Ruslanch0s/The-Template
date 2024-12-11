@@ -1,7 +1,6 @@
 import datetime
 import random
 import time
-
 from loguru import logger
 
 from config import config, Chains, Tokens
@@ -9,7 +8,7 @@ from core.bot import Bot
 from core.onchain import Onchain
 from core.excel import Excel
 from models.account import Account
-from utils.logging import init_logger
+from utils.logging import init_logger, send_telegram_message
 from utils.utils import random_sleep, get_accounts, generate_password, get_price_token, shuffle_account, \
     get_multiplayer
 
@@ -124,7 +123,16 @@ def activity(bot: Bot):
     :param bot: бот
     :return: None
     """
-    pass
+    logger.info('Информационное сообщение')
+    logger.error('Ошибка')
+    logger.warning('Предупреждение')
+    logger.success('Успех')
+    logger.critical('Критическая ошибка')
+
+
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.warning('Программа завершена вручную')
