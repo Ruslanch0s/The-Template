@@ -28,6 +28,9 @@ class Chains:
     - okx_name: название сети в OKX, список сетей можно получить запустив метод bot.okx.get_chains()
 
     """
+    # аргумент для хранения списка сетей
+    _chains = None
+
     ETHEREUM = Chain(
         name='ethereum',
         rpc='https://1rpc.io/eth',
@@ -109,7 +112,6 @@ class Chains:
     )
 
 
-
     @classmethod
     def get_chain(cls, name: str) -> Chain:
         """
@@ -132,6 +134,16 @@ class Chains:
                         return chain
             raise ChainNameError(f'Сеть {name} не найдена, добавьте ее в config/Chains, имена должны совпадать')
 
+
+    @classmethod
+    def get_chains_list(cls):
+        """
+        Возвращает список сетей, можно использовать для итерации по сетям.
+        :return: список сетей
+        """
+        if not cls._chains:
+            cls._chains = [chain for chain in cls.__dict__.values() if isinstance(chain, Chain)]
+        return cls._chains
 
 
 if __name__ == '__main__':
