@@ -88,7 +88,7 @@ class OKX:
             token = token.symbol
 
         if isinstance(amount, Amount):
-            amount = amount.ether_float
+            amount = amount.ether
 
         token_with_chain = token + "-" + chain
         fee = self._get_withdrawal_fee(token, token_with_chain)
