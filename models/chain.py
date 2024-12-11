@@ -38,11 +38,16 @@ class Chain:
     def __str__(self):
         return self.rpc
 
+    def __repr__(self):
+        return f"Chain(name={self.name}, rpc={self.rpc}, chain_id={self.chain_id}, metamask_name={self.metamask_name}, tx_type={self.tx_type}, native_token={self.native_token}, okx_name={self.okx_name})"
+
     def __eq__(self, other):
         if isinstance(other, Chain):
             return self.name == other.name
         elif isinstance(other, str):
             return self.name.lower() == other.lower()
+        elif isinstance(other, int):
+            return self.chain_id == other
         else:
             logger.error(f'Ошибка сравнения сетей {type(other)}')
             return False
