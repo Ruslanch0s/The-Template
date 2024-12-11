@@ -9,7 +9,10 @@ if TYPE_CHECKING:
     from core.onchain import Onchain
 
 
-class Dap:
+class Dapp:
+    """
+    Родительский класс для всех децентрализованных приложений.
+    """
 
     def __init__(self, onchain: Onchain):
         self.onchain = onchain
