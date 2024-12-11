@@ -21,7 +21,7 @@ class Bot:
         self.onchain = Onchain(account, chain)
 
     def __enter__(self):
-        logger.info(f"Запуск профиля {self.account.profile_number}")
+        logger.bind(profile_number=self.account.profile_number).info(f"Запуск профиля {self.account.profile_number}")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -36,4 +36,5 @@ class Bot:
                     f"Аккаунт {self.ads.profile_number} завершен с ошибкой, возможно вы выключили работу браузера и пытаетесь сделать логику работу с браузером. {exc_val}'")
             else:
                 logger.error(f"Аккаунт {self.ads.profile_number} завершен с ошибкой {exc_val}")
+        logger.bind(profile_number='clear').info("")
         return True
