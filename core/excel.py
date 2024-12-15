@@ -156,17 +156,20 @@ class Excel:
 
         return self._sheet.cell(row=row, column=col_num).value
 
-    def get_column(self, column_name: str) -> list[str | int | None]:
+    def get_column(self, column_name: str, is_empty_pass: bool = False) -> list[str | int | None]:
         """
         Возвращает список значений столбца по имени. Если в ячейке пусто, возвращает None.
         :param column_name: имя столбца
+        :param is_empty_pass: пропускать ли пустые ячейки
         :return: список значений столбца
         """
         col_num = self.find_column(column_name)
         column_values = []
         for raw in self._sheet.iter_cols(min_col=col_num, max_col=col_num, min_row=2):
             for cell in raw:
-                if cell.value:
+                if is_empty_pass and cell.value:
+                    column_values.append(cell.value)
+                elif not is_empty_pass:
                     column_values.append(cell.value)
 
         return column_values
