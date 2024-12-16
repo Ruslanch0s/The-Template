@@ -27,13 +27,13 @@ class Bot:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.ads._close_browser()
         if exc_type is None:
-            logger.success(f"Аккаунт завершен")
+            logger.success(f"Аккаунт завершен успешно")
         elif issubclass(exc_type, TimeoutError):
             logger.error(f"Аккаунт завершен по таймауту")
         else:
             if "object has no attribute 'page'" in str(exc_val):
                 logger.error(f"Аккаунт завершен с ошибкой, возможно вы выключили работу браузера и пытаетесь сделать логику работу с браузером. {exc_val}'")
             else:
-                logger.error(f"Аккаунт завершен с ошибкой {exc_val}")
+                logger.critical(f"Аккаунт завершен с ошибкой {exc_val}")
         logger.bind(profile_number='clear').info("")
         return True

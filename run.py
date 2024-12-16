@@ -55,7 +55,7 @@ def worker(account: Account) -> None:
             activity(bot)
             # сюда по необходимости добавляем другие функции с активностями
     except Exception as e:
-        logger.error(f"Ошибка в аккаунте {account.profile_number}: {e}")
+        logger.critical(f"Ошибка при инициализации Bot: {e}")
 
 
 def schedule_and_filter(accounts: list[Account]) -> list[Account]:
@@ -127,6 +127,7 @@ def activity(bot: Bot):
     :param bot: бот
     :return: None
     """
+    bot.ads.open_url('google.com')
     pass
 
 
