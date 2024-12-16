@@ -49,10 +49,13 @@ def worker(account: Account) -> None:
     :return: None
     """
     # Создаем бота, если в конфиге включен is_browser_run, то будет запущен браузер
-    with Bot(account) as bot:
-        # Вызываем функцию activity и передаем в нее бота
-        activity(bot)
-        # сюда по необходимости добавляем другие функции с активностями
+    try:
+        with Bot(account) as bot:
+            # Вызываем функцию activity и передаем в нее бота
+            activity(bot)
+            # сюда по необходимости добавляем другие функции с активностями
+    except Exception as e:
+        logger.error(f"Ошибка в аккаунте {account.profile_number}: {e}")
 
 
 def schedule_and_filter(accounts: list[Account]) -> list[Account]:
@@ -63,6 +66,7 @@ def schedule_and_filter(accounts: list[Account]) -> list[Account]:
     :param accounts: список аккаунтов
     :return: список аккаунтов для работы
     """
+
     # если фильтрация аккаунтов не включена, возвращаем все аккаунты
     if not config.is_schedule:
         return accounts
@@ -123,11 +127,7 @@ def activity(bot: Bot):
     :param bot: бот
     :return: None
     """
-    logger.info('Информационное сообщение')
-    logger.error('Ошибка')
-    logger.warning('Предупреждение')
-    logger.success('Успех')
-    logger.critical('Критическая ошибка')
+    pass
 
 
 
