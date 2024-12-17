@@ -147,7 +147,7 @@ class Onchain:
             tx_params = self._prepare_tx()
             tx = contract.functions.transfer(to_address, amount.wei).build_transaction(tx_params)
 
-        hash = self._sing_and_send(tx)
+        hash = self._sign_and_send(tx)
         message = f'send {amount} {token.symbol} to {to_address}'
         logger.info(f'Транзакция отправлена [{message}] tx hash: {hash}')
         return hash
@@ -235,11 +235,11 @@ class Onchain:
         tx_params = self._prepare_tx()
 
         tx = contract.functions.approve(spender, amount.wei).build_transaction(tx_params)
-        self._sing_and_send(tx)
+        self._sign_and_send(tx)
         message = f'approve {amount} {token.symbol} to {spender}'
         logger.info(f'Транзакция отправлена {message}')
 
-    def _sing_and_send(self, tx: dict) -> str:
+    def _sign_and_send(self, tx: dict) -> str:
         """
         Подпись и отправка транзакции
         :param tx: параметры транзакции
