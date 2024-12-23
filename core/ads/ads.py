@@ -19,15 +19,19 @@ class Ads:
 
     def __init__(self, account: Account):
         self.profile_number = account.profile_number
+        self._profile_id = None  # id профиля в ADS, реализован геттер profile_id
+        self._user_agent = None  # user_agent браузера, реализован геттер user_agent
+
         if not config.is_browser_run:
             return
 
         if config.set_proxy:
             self.proxy = account.proxy
             self._set_proxy()
+
         self.pw: Optional[Playwright] = None
-        self.browser = self._start_browser()
-        self.context = self.browser.contexts[0]
+        self._browser = self._start_browser()
+        self.context = self._browser.contexts[0]
         self.page = self.context.new_page()
         self._prepare_browser()
 
@@ -36,6 +40,18 @@ class Ads:
 
         if config.check_proxy:
             self._check_proxy()
+
+    @property
+    def profile_id(self) -> str:
+        if not self._profile_id:
+            self._profile_id = self._get_profile_id()
+        return self._profile_id
+
+    @property
+    def user_agent(self) -> str:
+        if not self._user_agent:
+            self._user_agent = self.page.evaluate('navigator.userAgent')
+        return self._user_agent
 
     def _open_browser(self) -> str:
         """
@@ -125,8 +141,8 @@ class Ads:
         if not config.is_browser_run:
             return
 
-        if not self.browser.is_connected():
-            self.browser.close()
+        if not self._browser.is_connected():
+            self._browser.close()
 
         self.pw.stop() if self.pw else None
         params = dict(serial_number=self.profile_number)
@@ -331,6 +347,6 @@ class Ads:
         :param locator: локатор элемента
         :return: страница
         """
-        with self.context.expect_page(timeout=timeout*1000) as page_catcher:
+        with self.context.expect_page(timeout=timeout * 1000) as page_catcher:
             locator.click()
         return page_catcher.value
