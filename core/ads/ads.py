@@ -17,13 +17,13 @@ from loguru import logger
 class Ads:
     _local_api_url = "http://local.adspower.net:50325/api/v1/"
 
-    def __init__(self, account: Account, proxy: Optional[str] = None):
+    def __init__(self, account: Account):
         self.profile_number = account.profile_number
         if not config.is_browser_run:
             return
 
         if config.set_proxy:
-            self.proxy = proxy
+            self.proxy = account.proxy
             self._set_proxy()
         self.pw: Optional[Playwright] = None
         self.browser = self._start_browser()
@@ -99,7 +99,7 @@ class Ads:
                 self.pw.stop() if self.pw else None
                 random_sleep(5, 10)
 
-        raise Exception(f"{self.profile_number}: Error не удалось запустить браузер")
+        raise Exception(f"Error не удалось запустить браузер")
 
     def _prepare_browser(self) -> None:
         """
@@ -114,7 +114,7 @@ class Ads:
                     page.close()
 
         except Exception as e:
-            logger.error(f"{self.profile_number}: Ошибка при закрытии страниц: {e}")
+            logger.error(f"Ошибка при закрытии страниц: {e}")
             raise e
 
     def _close_browser(self) -> None:
@@ -135,13 +135,13 @@ class Ads:
         try:
             get_response(url, params)
         except Exception as e:
-            logger.error(f"{self.profile_number} Ошибка при остановке браузера: {e}")
+            logger.error(f"Ошибка при остановке браузера: {e}")
             raise e
 
     def catch_page(self, url_contains: str | list[str] = None, timeout: int = 10) -> \
             Optional[Page]:
         """
-        Ищет страницу по частичному совпадению url.
+        Ищет страницу по частичному совпадению url. Если не находит, возвращает None. Каждые 3 попытки обновляет контекст.
         :param url_contains: текст, который ищем в url или список текстов
         :param timeout: время ожидания
         :return: страница с нужным url или None
@@ -154,11 +154,11 @@ class Ads:
                 for url in url_contains:
                     if url in page.url:
                         return page
-                    if attempt and attempt % 5 == 0:
+                    if attempt and attempt % 3 == 0:
                         self.pages_context_reload()
                     random_sleep(1, 2)
 
-        logger.error(f"{self.profile_number} Ошибка страница не найдена: {url_contains}")
+        logger.warning(f"Ошибка страница не найдена: {url_contains}")
         return None
 
     def pages_context_reload(self) -> None:
