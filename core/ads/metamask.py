@@ -264,3 +264,57 @@ class Metamask:
         self.ads.page.get_by_test_id('network-form-chain-id').fill(str(chain.chain_id))
         self.ads.page.get_by_test_id('network-form-ticker-input').fill(chain.native_token)
         self.ads.page.get_by_role('button', name='Save').click()
+
+    def change_chain_data(self, chain: Chain) -> None:
+        """
+        Меняет параметры сети в Metamask. Берет данные из объекта Chain.
+
+        :param chain: объект сети с параметрами:
+            - metamask_name (str): Имя сети в Metamask.
+            - chain_id (int): Идентификатор сети (целое число).
+            - rpc (str): URL RPC-сервера для подключения.
+            - native_token (str): Тикер нативного токена сети.
+        :return: None
+        """
+        self.open_metamask()
+        self.ads.page.get_by_test_id('network-display').click()
+
+        # Преобразуем chain_id в шестнадцатеричное число для упрощения поиска элемента
+        hex_id = hex(chain.chain_id)
+
+        # Находим нужную сеть и открываем настройки
+        if not self.ads.page.get_by_test_id(f'network-list-item-options-button-{hex_id}').count():
+            logger.info(f'Сеть {chain.metamask_name} не найдена в списке установленных. Устанавливаем.')
+            self.ads.page.get_by_role('button', name='Close').first.click()
+            self.set_chain(chain)
+            return
+
+        self.ads.page.get_by_test_id(f'network-list-item-options-button-{hex_id}').click()
+        self.ads.page.get_by_test_id('network-list-item-options-edit').click()
+
+        # Если имя не совпадает с chain.metamask_name, меняем
+        if self.ads.page.get_by_test_id('network-form-network-name').get_attribute(
+                'value') != chain.metamask_name:
+            self.ads.page.get_by_test_id('network-form-network-name').fill(chain.metamask_name)
+
+        # Если rpc не совпадает с chain.rpc, меняем
+        rpc_element = self.ads.page.locator('//button[@data-testid="test-add-rpc-drop-down"]/../..')
+        if rpc_element.get_attribute('data-original-title') != chain.rpc:
+            rpc_element.click()
+            # Чтобы rpc находилось в списке, убираем "https://"
+            rpc_without_https = chain.rpc.replace('https://', '')
+            if self.ads.page.get_by_role('tooltip').get_by_text(rpc_without_https).count():
+                self.ads.page.get_by_role('tooltip').get_by_text(rpc_without_https).click()
+            else:
+                self.ads.page.get_by_role('button', name='Add RPC URL').click()
+                self.ads.page.get_by_test_id('rpc-url-input-test').fill(chain.rpc)
+                self.ads.page.get_by_role('button', name='Add URL').click()
+
+        # Если токен не совпадает с chain.native_token, меняем
+        if self.ads.page.get_by_test_id('network-form-ticker-input').get_attribute(
+                'value') != chain.native_token:
+            self.ads.page.get_by_test_id('network-form-ticker-input').fill(chain.native_token)
+
+        # Сохраняем изменения
+        self.ads.page.get_by_role('button', name='Save').click()
+        logger.info(f'Данные сети {chain.metamask_name} успешно изменены')
