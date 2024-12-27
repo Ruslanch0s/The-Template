@@ -22,12 +22,13 @@ class Ads:
         self._profile_id = None  # id профиля в ADS, реализован геттер profile_id
         self._user_agent = None  # user_agent браузера, реализован геттер user_agent
 
-        if not config.is_browser_run:
-            return
 
         if config.set_proxy:
             self.proxy = account.proxy
             self._set_proxy()
+
+        if not config.is_browser_run:
+            return
 
         self.pw: Optional[Playwright] = None
         self._browser = self._start_browser()
