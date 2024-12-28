@@ -26,6 +26,19 @@ class Onchain:
             if not self.account.address:
                 self.account.address = self.w3.eth.account.from_key(self.account.private_key).address
 
+
+    def is_eip_1559(self) -> bool:
+        """
+        Проверка наличия EIP-1559 на сети. Возвращает True, если EIP-1559 включен.
+        :return: bool
+        """
+        fees_data = self.w3.eth.fee_history(50, 'latest')
+        base_fee = fees_data['baseFeePerGas']
+        for fee in base_fee:
+            if fee > 0:
+                return True
+        return False
+
     def _get_token_params(self, token_address: str | ChecksumAddress) -> tuple[str, int]:
         """
         Получение параметров токена (symbol, decimals) по адресу контракта токена
