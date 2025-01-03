@@ -18,7 +18,7 @@ class Config(Singleton):
 
     # запускать ли браузер, если False, будет работать без браузера
     # если False, то не будет работать модуль ads
-    is_browser_run = True  # Запускать браузер или нет
+    is_browser_run = False  # Запускать браузер или нет
 
     # формат даты в excel, не меняйте если не знаете что делаете
     date_format = '%d/%m/%Y %H:%M:%S'
@@ -36,6 +36,9 @@ class Config(Singleton):
     cycle = 10000
     # укажите какую паузу делать перед новым циклом запуска профилей в секундах от и до
     pause_between_cycle = [100, 200]
+
+    # okx прокси, укажите прокси для работы с биржей okx, если вы находитесь в РФ
+    okx_proxy = None  # формат ip:port:login:password
 
     # нужно ли устанавливать прокси в профиль ADS
     set_proxy = False  # формат ip:port:login:password

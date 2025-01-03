@@ -338,7 +338,7 @@ class Ads:
                     locator = self.page.get_by_role(role, name=name)
                 case "text":
                     locator = self.page.get_by_text(value)
-
+        random_sleep(2, 3)
         if locator.count():
             locator.click()
 

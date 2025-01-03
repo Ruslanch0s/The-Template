@@ -11,7 +11,7 @@ from models.account import Account
 from models.amount import Amount
 from models.chain import Chain
 from models.token import Token
-from utils.utils import random_sleep
+from utils.utils import random_sleep, prepare_proxy_httpx
 
 
 class OKX:
@@ -21,13 +21,28 @@ class OKX:
 
     def __init__(self, account: Account) -> None:
         self.account = account
+
+        if not any([config.okx_api_key_main, config.okx_secret_key_main, config.okx_passphrase_main]):
+            logger.warning(f"Не указаны ключи для работы с OKX, запускаем работу без них")
+            return
+
         self.funding_api = Funding.FundingAPI(
             config.okx_api_key_main,
             config.okx_secret_key_main,
             config.okx_passphrase_main,
             flag="0",
-            debug=False
+            debug=False,
+            proxy=prepare_proxy_httpx(config.okx_proxy)
         )
+
+        try:
+            self.funding_api.get_currencies()
+            logger.info(f"Подключение к OKX прошло успешно")
+        except Exception as error:
+            logger.error(f"Не удалось подключиться к OKX, возможно нужно указать прокси для биржи в settings: {error}")
+            raise error
+
+
 
     def get_chains(self) -> None:
         """

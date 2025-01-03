@@ -70,7 +70,7 @@ def get_from_excel() -> tuple[list[str], list[str], list[str], list[str], list[s
     Получает аккаунты из excel файла
     :return: кортеж списков аккаунтов
     """
-    excel = Excel()
+    excel = Excel(file='accounts.xlsx')
     # Получаем данные из excel файла
     profile_numbers = excel.get_column("Profile Number")
     passwords = excel.get_column("Password")
@@ -261,3 +261,16 @@ def timeout(timeout):
         return wrapper
 
     return decorator
+
+
+def prepare_proxy_httpx(proxy: str) -> Optional[str]:
+    """
+    Подготавливает прокси для использования в запросах httpx. (okx)
+    :param proxy: строка прокси
+    :return: прокси для использования в httpx
+    """
+    if not proxy:
+        return None
+
+    ip, port, login, password = proxy.split(":")
+    return f'http://{login}:{password}@{ip}:{port}'

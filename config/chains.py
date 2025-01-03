@@ -97,7 +97,7 @@ class Chains:
         chain_id=43114,
         native_token='AVAX',
         metamask_name='Avalanche',
-        tx_type=0,
+        tx_type=2,
         okx_name='Avalanche C'
     )
 
