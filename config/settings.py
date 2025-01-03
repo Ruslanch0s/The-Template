@@ -38,7 +38,7 @@ class Config(Singleton):
     pause_between_cycle = [100, 200]
 
     # okx прокси, укажите прокси для работы с биржей okx, если вы находитесь в РФ
-    okx_proxy = None  # формат ip:port:login:password
+    okx_proxy = None  # формат 'ip:port:login:password'
 
     # нужно ли устанавливать прокси в профиль ADS
     set_proxy = False  # формат ip:port:login:password
@@ -61,7 +61,6 @@ class Config(Singleton):
     metamask_url = "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html"
 
     # ниже системные переменные, не меняйте их
-
     bot_token = os.getenv("BOT_TOKEN")
 
     okx_api_key_main = os.getenv("OKX_API_KEY_MAIN")
