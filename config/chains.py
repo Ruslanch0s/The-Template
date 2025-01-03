@@ -7,7 +7,8 @@ class Chains:
     Класс для хранения списка сетей.
     Название переменных Chains и значение name в объекте Chain должны совпадать.
     Информацию для добавление сети можно взять из https://chainlist.org/ (рекомендую 1rpc)
-    и из https://chainid.network/chains.json
+    и из https://chainid.network/chains.json, либо https://api.debank.com/chain/list
+    Информацию о eip1559 можно посмотреть тут https://api.debank.com/chain/list
 
     Сети из данного списка можно использовать в скрипте вставляя в выбор или добавление сети
     метамаска, а так же для подключение к RPC ноде в Web3 транзакциях.
@@ -22,7 +23,7 @@ class Chains:
 
     опциональные:
 
-    - tx_type: тип транзакции, по умолчанию 2 (0 - Legacy, 2 - EIP-1559),  можно искать тут https://chainid.network/chains.json
+    - tx_type: тип транзакции, по умолчанию 2 (0 - Legacy, 2 - EIP-1559), можно искать тут https://api.debank.com/chain/list
     - native_token: тикер нативного токена сети, по умолчанию 'ETH'
     - metamask_name: название сети в metamask, по умолчанию берется из параметра name
     - okx_name: название сети в OKX, список сетей можно получить запустив метод bot.okx.get_chains()
