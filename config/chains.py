@@ -137,7 +137,7 @@ class Chains:
 
 
     @classmethod
-    def get_chains_list(cls):
+    def get_chains_list(cls) -> list[Chain]:
         """
         Возвращает список сетей, можно использовать для итерации по сетям.
         :return: список сетей
