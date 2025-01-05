@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import random
+import time
 from typing import Optional, Literal
 
 import requests
@@ -351,3 +352,22 @@ class Ads:
         with self.context.expect_page(timeout=timeout * 1000) as page_catcher:
             locator.click()
         return page_catcher.value
+
+    def get_text_with_clipboard(self, locator: Locator) -> str:
+        """
+        Получает текст из элемента через буфер обмена
+        :param locator: локатор элемента
+        :return: текст из элемента
+        """
+        import pyperclip
+
+        old_clipboard = pyperclip.paste()
+        # кликаем по элементу, чтобы скопировать текст в буфер обмена
+        locator.click()
+        # получаем текст из буфера обмена
+        new_clipboard = pyperclip.paste()
+
+        # восстанавливаем старое значение
+        pyperclip.copy(old_clipboard)
+
+        return new_clipboard
