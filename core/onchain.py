@@ -58,6 +58,7 @@ class Onchain:
 
     def get_balance(
             self,
+            *,
             token: Optional[Token | str | ChecksumAddress] = None,
             address: Optional[str | ChecksumAddress] = None
 
@@ -115,6 +116,7 @@ class Onchain:
 
     def send_token(self,
                    amount: Amount | int | float,
+                   *,
                    to_address: str | ChecksumAddress,
                    token: Optional[Token, str, ChecksumAddress] = None
                    ) -> str:
