@@ -39,8 +39,7 @@ class OKX:
             self.funding_api.get_currencies()
             logger.info(f"Подключение к OKX прошло успешно")
         except Exception as error:
-            logger.error(f"Не удалось подключиться к OKX, возможно нужно указать прокси для биржи в settings: {error}")
-            raise error
+            logger.warning(f"Не удалось подключиться к OKX, возможно нужно указать прокси для биржи в settings: {error}, запускаем без OKX.")
 
 
 
