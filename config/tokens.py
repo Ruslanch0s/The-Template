@@ -163,9 +163,9 @@ class Tokens:
         return token
 
     @classmethod
-    def get_tokens(cls, chain: Chain) -> list[Token]:
+    def get_tokens_by_chain(cls, chain: Chain) -> list[Token]:
         """
-        Получение списка токенов для сети
+        Получение списка токенов для сети.
         :param chain: объект Chain
         :return:  список токенов
         """
@@ -173,5 +173,21 @@ class Tokens:
         for token in cls.__dict__.values():
             if isinstance(token, Token):
                 if token.chain == chain:
+                    if token.type_token == TokenTypes.NATIVE:
+                        continue
                     tokens.append(token)
+        return tokens
+
+    @classmethod
+    def get_tokens(cls) -> list[Token]:
+        """
+        Получение списка всех токенов.
+        :return: список токенов
+        """
+        tokens = []
+        for token in cls.__dict__.values():
+            if isinstance(token, Token):
+                if token.type_token == TokenTypes.NATIVE:
+                    continue
+                tokens.append(token)
         return tokens
