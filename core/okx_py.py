@@ -21,6 +21,7 @@ class OKX:
 
     def __init__(self, account: Account) -> None:
         self.account = account
+        self._chains: Optional[list[str]] = None
 
         if not any([config.okx_api_key_main, config.okx_secret_key_main, config.okx_passphrase_main]):
             logger.warning(f"Не указаны ключи для работы с OKX, запускаем работу без них")
@@ -43,22 +44,40 @@ class OKX:
 
 
 
-    def get_chains(self) -> None:
+    def get_chains(self) -> list[str]:
         """
-        Выводит в терминал список сетей, которые можно использовать для вывода средств с биржи OKX.
-        :return: None
+        Возвращает список сетей, которые поддерживает биржа OKX.
+        :return: cписок сетей.
         """
-        response = self.funding_api.get_currencies()
-        data = response.get("data")
-        if response.get("code") != "0":
-            logger.error(
-                f"{self.account.profile_number} Не удалось получить список токенов: {response.get('msg')}")
-        chains = set()
-        for chain in data:
-            if chain.get("chain"):
-                chain = chain.get("chain").split("-")[1]
-                chains.add(f"'{chain}'")
-        print(*chains, sep=', ')
+        if not self._chains:
+            response = self.funding_api.get_currencies()
+            data = response.get("data")
+            if response.get("code") != "0":
+                logger.error(
+                    f"{self.account.profile_number} Не удалось получить список токенов: {response.get('msg')}")
+            chains = set()
+            for chain in data:
+                if chain.get("chain"):
+                    chain = chain.get("chain").split("-")[1]
+                    chains.add(f"'{chain}'")
+            self._chains = list(chains)
+        return self._chains
+
+
+    def check_chain(self, chain: Chain | str) -> bool:
+        """
+        Проверяет, поддерживает ли биржа OKX сеть. Проверка происходит по названию сети без учета регистра.
+        :param chain: объект сети Chain или строка с названием сети
+        :return: True если сеть поддерживается, иначе False
+        """
+        if isinstance(chain, Chain):
+            chain = chain.okx_name
+        chains = self.get_chains()
+        chains = [chain.lower() for chain in chains]
+        return chain.lower() in chains
+
+
+
 
     def withdraw(
             self,
