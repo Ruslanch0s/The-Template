@@ -71,6 +71,9 @@ class OKX:
         :return: True если сеть поддерживается, иначе False
         """
         if isinstance(chain, Chain):
+            if not chain.okx_name:
+                logger.warning(f"[OKX] -> у сети {chain.name} нет названия для OKX")
+                return False
             chain = chain.okx_name
         chains = self.get_chains()
         chains = [chain.lower() for chain in chains]
@@ -115,6 +118,9 @@ class OKX:
             address = self.account.address
 
         if isinstance(chain, Chain):
+            if not chain.okx_name:
+                logger.error(f"[OKX] Вывод невозможен, у сети {chain.name} нет названия для OKX")
+                return
             chain = chain.okx_name
 
         if isinstance(token, Token):

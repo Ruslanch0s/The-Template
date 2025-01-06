@@ -13,7 +13,7 @@ class Chain:
     - tx_type: тип транзакции, по умолчанию 2 (0 - Legacy, 2 - EIP-1559),  можно искать тут https://chainid.network/chains.json
     - native_token: тикер нативного токена сети, по умолчанию 'ETH'
     - metamask_name: название сети в metamask, по умолчанию берется из параметра name
-    - okx_name: название сети в OKX, список сетей можно получить запустив метод bot.okx.get_chains()
+    - okx_name: название сети в OKX, список сетей можно получить запустив метод bot.okx.get_chains(), по умолчанию None
     """
 
     def __init__(
@@ -33,7 +33,7 @@ class Chain:
         self.metamask_name = metamask_name if metamask_name else name
         self.tx_type = tx_type
         self.native_token = native_token
-        self.okx_name = okx_name if okx_name else name
+        self.okx_name = okx_name
 
     def __str__(self):
         return self.rpc
