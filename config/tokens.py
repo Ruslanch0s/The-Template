@@ -88,7 +88,7 @@ class Tokens:
         address='0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
         chain=Chains.BSC,
         type_token=TokenTypes.STABLE,
-        decimals=6
+        decimals=18
     )
 
     USDC_POLYGON = Token(
