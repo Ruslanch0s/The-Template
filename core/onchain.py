@@ -35,6 +35,9 @@ class Onchain:
         """
         token_contract_address = to_checksum(token_address)
 
+        if token_contract_address == Tokens.NATIVE_TOKEN.address:
+            return self.chain.native_token, Tokens.NATIVE_TOKEN.decimals
+
         token_contract_raw = ContractRaw(token_contract_address, 'erc20', self.chain)
         token_contract = self._get_contract(token_contract_raw)
         decimals = token_contract.functions.decimals().call()
