@@ -33,6 +33,16 @@ class Excel:
         if account:
             self.acc_row = self._find_acc_row(str(self.account.profile_number))
 
+    def change_table(self, table_name: str) -> None:
+        """
+        Меняет инициализированную таблицу для работы. Таблица должна располагаться
+        в директории config/data. Если таблицы нет, метод создаст её.
+        :param table_name: имя таблицы с расширением, например: report.xlsx
+        :return: None
+        """
+        self._file = os.path.join(config.PATH_DATA, table_name)
+        self._table = self._get_table()
+
     def connect_account(self, account: Account) -> None:
         """
         Подключает аккаунт к таблице. Нужен чтобы можно было использовать один объект Excel для нескольких аккаунтов.
