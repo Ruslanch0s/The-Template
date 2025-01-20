@@ -46,7 +46,7 @@ class Chains:
         name='linea',
         rpc='https://1rpc.io/linea',
         chain_id=59144,
-        metamask_name='Linea Mainnet',
+        metamask_name='Linea',
         tx_type=2,
         native_token='ETH',
         okx_name='Linea'
