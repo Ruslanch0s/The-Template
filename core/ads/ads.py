@@ -23,7 +23,6 @@ class Ads:
         self._profile_id = None  # id профиля в ADS, реализован геттер profile_id
         self._user_agent = None  # user_agent браузера, реализован геттер user_agent
 
-
         if config.set_proxy:
             self.proxy = account.proxy
             self._set_proxy()
@@ -51,6 +50,10 @@ class Ads:
 
     @property
     def user_agent(self) -> str:
+        """
+        Возвращает user_agent запущенного браузера
+        :return: user_agent
+        """
         if not self._user_agent:
             self._user_agent = self.page.evaluate('navigator.userAgent')
         return self._user_agent
@@ -184,11 +187,9 @@ class Ads:
         Перезагружает контекст вкладок. Необходимо когда playwright не видит вкладку.
         :return: None
         """
-        self.context.new_page()
+        new_page = self.context.new_page()
         random_sleep(1, 2)
-        for page in self.context.pages:
-            if 'about:blank' in page.url:
-                page.close()
+        new_page.close()
 
     def _set_proxy(self) -> None:
         """
@@ -371,3 +372,20 @@ class Ads:
         pyperclip.copy(old_clipboard)
 
         return new_clipboard
+
+    def keyboard_emulation(self, locator: Locator, text: str, mistake: bool = False) -> None:
+        """
+        Вводит текст в поле посимвольно с паузой от 0.1 до 0.5 секунды.
+        :param mistake: допускать ли ошибки при вводе
+        :param locator: локатор текстового поля
+        :param text: текст который нужно ввести в поле
+        :return: None
+        """
+        for symbol in text:
+            if mistake and random.randint(0, 10) > 8:
+                random_symbol = random.choice('abcdefghijklmnopqrstuvwxyz')
+                locator.press_sequentially(random_symbol)
+                random_sleep(0.01, 0.1)
+                locator.press('Backspace')
+            locator.press_sequentially(symbol)
+            random_sleep(0.01, 0.1)
