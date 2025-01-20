@@ -11,12 +11,14 @@ class Tokens:
     Класс для хранения токенов, названия переменных должны быть в формате SYMBOL_CHAIN_NAME
     Например: для токена WETH в сети Arbitrum One переменная будет называться WETH_ARBITRUM_ONE
     """
-    ETH = Token(
-        symbol='ETH',
+
+    # токен заглушка для нативного токена в методах onchain
+    NATIVE_TOKEN = Token(
+        symbol='NATIVE',
         address='0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
         chain=Chains.ETHEREUM,
-        type_token=TokenTypes.NATIVE,
-        decimals=18
+        decimals=18,
+        type_token=TokenTypes.NATIVE
     )
 
     USDT_ETHEREUM = Token(
