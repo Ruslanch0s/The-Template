@@ -3,18 +3,19 @@ from __future__ import annotations
 import random
 from typing import Optional
 
+from eth_account import Account as EthAccount
 from eth_typing import ChecksumAddress
-from loguru import logger
-from web3 import Web3
 from web3.contract import Contract
+from web3 import Web3
+from loguru import logger
 
-from config.tokens import Tokens
+from config import config, Tokens
 from models.account import Account
 from models.token import Token, TokenTypes
 from models.chain import Chain
 from models.amount import Amount
 from models.contract_raw import ContractRaw
-from utils.utils import to_checksum
+from utils.utils import to_checksum, random_sleep
 
 
 class Onchain:
@@ -26,19 +27,6 @@ class Onchain:
             if not self.account.address:
                 self.account.address = self.w3.eth.account.from_key(self.account.private_key).address
 
-
-    def is_eip_1559(self) -> bool:
-        """
-        Проверка наличия EIP-1559 на сети. Возвращает True, если EIP-1559 включен.
-        :return: bool
-        """
-        fees_data = self.w3.eth.fee_history(50, 'latest')
-        base_fee = fees_data['baseFeePerGas']
-        for fee in base_fee:
-            if fee > 0:
-                return True
-        return False
-
     def _get_token_params(self, token_address: str | ChecksumAddress) -> tuple[str, int]:
         """
         Получение параметров токена (symbol, decimals) по адресу контракта токена
@@ -46,9 +34,6 @@ class Onchain:
         :return: кортеж (symbol, decimals)
         """
         token_contract_address = to_checksum(token_address)
-
-        if token_contract_address == Tokens.ETH.address.lower():
-            return Tokens.ETH.symbol, Tokens.ETH.decimals
 
         token_contract_raw = ContractRaw(token_contract_address, 'erc20', self.chain)
         token_contract = self._get_contract(token_contract_raw)
@@ -61,7 +46,6 @@ class Onchain:
             *,
             token: Optional[Token | str | ChecksumAddress] = None,
             address: Optional[str | ChecksumAddress] = None
-
     ) -> Amount:
         """
         Получение баланса кошелька в нативных или erc20 токенах, в формате Amount.
@@ -69,6 +53,9 @@ class Onchain:
         :param address: адрес кошелька, если не указан, то берется адрес аккаунта
         :return: объект Amount с балансом
         """
+
+        if token is None:
+            token = Tokens.NATIVE_TOKEN
 
         # если не указан адрес, то берем адрес аккаунта
         if not address:
@@ -83,9 +70,10 @@ class Onchain:
             token = Token(symbol, token, self.chain, decimals)
 
         # если токен не передан или передан нативный токен
-        if token is None or token.type_token == TokenTypes.NATIVE:
+        if token.type_token == TokenTypes.NATIVE:
             # получаем баланс нативного токена
-            balance = Amount(self.w3.eth.get_balance(address), wei=True)
+            native_balance = self.w3.eth.get_balance(address)
+            balance = Amount(native_balance, wei=True)
         else:
             # получаем баланс erc20 токена
             contract = self._get_contract(token)
@@ -118,54 +106,67 @@ class Onchain:
                    amount: Amount | int | float,
                    *,
                    to_address: str | ChecksumAddress,
-                   token: Optional[Token, str, ChecksumAddress] = None
+                   token: Optional[Token | str | ChecksumAddress] = None
                    ) -> str:
         """
-        Отправка любых типов токенов, если не указан адрес контракта, то отправка нативного токена
+        Отправка любых типов токенов, если не указан токен или адрес контракта токена, то отправка нативного токена
         :param amount: сумма перевода, может быть объектом Amount, int или float
         :param to_address: адрес получателя
-        :param token: объект Token или адрес контракта токена
+        :param token: объект Token или адрес контракта токена, если оставить пустым будет отправлен нативный токен
         :return: хэш транзакции
         """
-        to_address = to_checksum(to_address)
-        balance = self.get_balance(token)
 
-        # если не указан токен, то отправляем нативный токен
-        if not token:
-            token = Tokens.ETH
+        # если не передан токен, то отправляем нативный токен
+        if token is None:
+            token = Tokens.NATIVE_TOKEN
+            token.chain = self.chain
+            token.symbol = self.chain.native_token
+
+        # приводим адрес к формату checksum
+        to_address = to_checksum(to_address)
+
+        # получаем баланс кошелька
+        balance = self.get_balance(token=token)
 
         # если передан адрес контракта, то получаем параметры токена и создаем объект Token
         if isinstance(token, str):
             symbol, decimals = self._get_token_params(token)
             token = Token(symbol, token, self.chain, decimals)
 
-        multiplier = random.uniform(1.05, 1.1)
-
+        # если передана сумма в виде числа, то создаем объект Amount
         if not isinstance(amount, Amount):
             amount = Amount(amount, decimals=token.decimals)
 
+        # получаем случайный множитель учета газа в транзакции
+        multiplier = random.uniform(1.05, 1.1)
+
         # если передан нативный токен
         if token.type_token == TokenTypes.NATIVE:
+            # подготавливаем параметры транзакции
             tx = self._prepare_tx(amount, to_address)
+            # расчет возможной комиссии
             fee_spend = 21000 * tx['maxFeePerGas'] * multiplier
+            # проверка наличия средств на балансе
             if balance.wei - fee_spend - amount.wei < 0:
-                logger.error(
-                    f'{self.account.profile_number} Недостаточно средств для отправки транзакции, баланс: {balance} ETH, сумма: {amount} ETH')
-                raise ValueError(
-                    f'{self.account.profile_number} Недостаточно средств для отправки транзакции')
+                message = f' баланс {token.symbol}: {balance}, сумма: {amount}'
+                logger.error(f'Недостаточно средств для отправки транзакции, {message}')
+                raise ValueError(f'Недостаточно средств для отправки транзакции: {message}')
             tx['value'] = amount.wei
-
         else:
+            # проверка наличия средств на балансе
             if balance.wei < amount.wei:
+                # если недостаточно средств, отправляем все доступные
                 amount = balance
+            # получаем контракт токена
             contract = self._get_contract(token)
             tx_params = self._prepare_tx()
+            # создаем транзакцию
             tx = contract.functions.transfer(to_address, amount.wei).build_transaction(tx_params)
-
-        hash = self._sign_and_send(tx)
-        message = f'send {amount} {token.symbol} to {to_address}'
-        logger.info(f'Транзакция отправлена [{message}] tx hash: {hash}')
-        return hash
+        # подписываем и отправляем транзакцию
+        tx_hash = self._sign_and_send(tx)
+        message = f' {amount} {token.symbol} на адрес {to_address}'
+        logger.info(f'Транзакция отправлена [{message}] хэш: {tx_hash}')
+        return tx_hash
 
     def _prepare_tx(self, value: Optional[Amount] = None,
                     to_address: Optional[str | ChecksumAddress] = None) -> dict:
@@ -196,15 +197,6 @@ class Onchain:
 
         return tx_params
 
-    def _replace_eth_to_weth(self, token: Token) -> Token:
-        """
-        Замена ETH на WETH для поиска пула ликвидности
-        :param token: объект Token
-        :return: исходный объект Token или WETH вместо ETH
-        """
-        if token == Tokens.ETH:
-            return Tokens.get_token_by_symbol('WETH', self.chain)
-        return token
 
     def _get_allowance(self, token: Token, spender: str | ChecksumAddress | ContractRaw) -> Amount:
         """
@@ -223,7 +215,7 @@ class Onchain:
         allowance = contract.functions.allowance(self.account.address, spender).call()
         return Amount(allowance, decimals=token.decimals, wei=True)
 
-    def _approve(self, token: Token, amount: Amount | int | float,
+    def _approve(self, token: Optional[Token], amount: Amount | int | float,
                  spender: str | ChecksumAddress | ContractRaw) -> None:
 
         """
@@ -234,7 +226,7 @@ class Onchain:
         :return: None
         """
 
-        if token.type_token == TokenTypes.NATIVE:
+        if token is None or token.type_token == TokenTypes.NATIVE:
             return
 
         if self._get_allowance(token, spender).wei >= amount.wei:
@@ -266,6 +258,51 @@ class Onchain:
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
         tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
         return tx_receipt.transactionHash.hex()
+
+    def get_gas_price(self, gwei: bool = True) -> int:
+        """
+        Получение текущей ставки газа
+        :return: ставка газа
+        """
+        gas_price = self.w3.eth.gas_price
+        if gwei:
+            return gas_price / 10 ** 9
+        return gas_price
+
+    def gas_price_wait(self, gas_limit: int = None) -> None:
+        """
+        Ожидание пока ставка газа не станет меньше лимита, осуществляется запрос каждые 5-10 секунд
+        :param gas_limit: лимит ставки газа, если не передан, берется из конфига
+        :return:
+        """
+        if not gas_limit:
+            gas_limit = config.gas_price_limit
+
+        while self.get_gas_price() > gas_limit:
+            random_sleep(5, 10)
+
+    def get_pk_from_seed(self, seed: str | list) -> str:
+        """
+        Получение приватного ключа из seed
+        :param seed: seed фраза в виде строки или списка слов
+        :return: приватный ключ
+        """
+        EthAccount.enable_unaudited_hdwallet_features()
+        if isinstance(seed, list):
+            seed = ' '.join(seed)
+        return EthAccount.from_mnemonic(seed).key.hex()
+
+    def is_eip_1559(self) -> bool:
+        """
+        Проверка наличия EIP-1559 на сети. Возвращает True, если EIP-1559 включен.
+        :return: bool
+        """
+        fees_data = self.w3.eth.fee_history(50, 'latest')
+        base_fee = fees_data['baseFeePerGas']
+        for fee in base_fee:
+            if fee > 0:
+                return True
+        return False
 
 
 if __name__ == '__main__':
