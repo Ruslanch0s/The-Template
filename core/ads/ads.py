@@ -11,7 +11,7 @@ from config.settings import config
 from models.account import Account
 from utils.utils import random_sleep, get_response
 
-from playwright.sync_api import sync_playwright, Browser, Page, Locator, Playwright
+from playwright.sync_api import sync_playwright, Browser, Page, Locator, Playwright, Frame
 from loguru import logger
 
 
@@ -389,3 +389,24 @@ class Ads:
                 locator.press('Backspace')
             locator.press_sequentially(symbol)
             random_sleep(0.01, 0.1)
+
+    def dump_frame_tree(self, page: Optional[Page] = None) -> None:
+        """
+        Рекурсивно выводит дерево фреймов.
+        :param page: страница, если не передана, то используется текущая страница в атрибуте ads.page
+        :return: None
+        """
+        if not page:
+            page = self.page
+        self._dump_frame_tree(page.main_frame)
+
+    def _dump_frame_tree(self, frame: Frame, indent: str = "") -> None:
+        """
+        Рекурсивно выводит дерево фреймов, необходимо передать main_frame.
+        :param frame: фрейм
+        :param indent: отступ
+        :return: None
+        """
+        print(indent + frame.name + '@' + frame.url)
+        for child in frame.child_frames:
+            self._dump_frame_tree(child, indent + "    ")
