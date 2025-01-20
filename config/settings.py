@@ -50,7 +50,10 @@ class Config(Singleton):
     link_change_ip = ""
 
     # в какой сети работает в ончейн (не относится к метамаску)
-    start_chain = Chains.LINEA
+    start_chain = Chains.ARBITRUM_ONE
+
+    # лимит газа для метода ожидания нужного газа gas_price_wait
+    gas_price_limit = 60
 
     # id чата в телеграме, куда отправлять сообщения
     chat_id = '12345678'
