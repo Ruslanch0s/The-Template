@@ -7,10 +7,9 @@ from models.account import Account
 from models.chain import Chain
 from utils.utils import random_sleep, generate_password, write_text_to_file
 
-
 class Metamask:
     """
-    Класс для работы с metamask v. 12.6.1
+    Класс для работы с metamask v. 12.9.3
     """
 
     def __init__(self, ads: Ads, account: Account):
@@ -167,7 +166,7 @@ class Metamask:
         except Exception as e:
             logger.warning(
                 f"Wargning: не смогли поймать окно метамаск, пробуем еще {self.ads.profile_number} {e}")
-            metamask_page = self.ads.catch_page(['notification', 'connect', 'confirm-transaction', ])
+            metamask_page = self.ads.catch_page(['notification', 'connect', 'confirm-transaction'])
             if not metamask_page:
                 raise Exception(f"Error: {self.ads.profile_number} Ошибка подключения метамаска")
 
@@ -215,12 +214,12 @@ class Metamask:
                 raise Exception(f"Error: {self.ads.profile_number} Ошибка подтверждения транзакции метамаска")
 
         metamask_page.wait_for_load_state('load')
-
         confirm_button = metamask_page.get_by_test_id('confirm-footer-button')
         if not confirm_button.count():
             confirm_button = metamask_page.get_by_test_id('page-container-footer-next')
 
         confirm_button.click()
+
 
     def select_chain(self, chain: Chain) -> None:
         """
@@ -261,6 +260,7 @@ class Metamask:
         if self.ads.page.get_by_test_id('network-form-chain-id-error').count():
             raise Exception(
                 f"Error: {self.ads.profile_number} metamask не принимает rpc {chain.rpc}, попробуйте другой")
+        # todo: проверить ошибку на этапе повторного добавления сети
         self.ads.page.get_by_test_id('network-form-chain-id').fill(str(chain.chain_id))
         self.ads.page.get_by_test_id('network-form-ticker-input').fill(chain.native_token)
         self.ads.page.get_by_role('button', name='Save').click()
