@@ -239,7 +239,8 @@ class Metamask:
         if enabled_networks.get_by_text(chain.metamask_name, exact=True).count():
             enabled_networks.get_by_text(chain.metamask_name, exact=True).click()
         else:
-            self.ads.page.get_by_role('button', name='Close').first.click()
+            close_button = self.ads.page.get_by_role('button', name='Close').or_(self.ads.page.get_by_role('button', name='Закрыть'))
+            close_button.first.click()
             self.set_chain(chain)
             self.select_chain(chain)
 
@@ -263,7 +264,7 @@ class Metamask:
         # todo: проверить ошибку на этапе повторного добавления сети
         self.ads.page.get_by_test_id('network-form-chain-id').fill(str(chain.chain_id))
         self.ads.page.get_by_test_id('network-form-ticker-input').fill(chain.native_token)
-        self.ads.page.get_by_role('button', name='Save').click()
+        self.ads.page.get_by_role('button', name='Save').or_(self.ads.page.get_by_role('button', name='Сохранить')).click()
 
     def change_chain_data(self, chain: Chain) -> None:
         """
