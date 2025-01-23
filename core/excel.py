@@ -150,7 +150,7 @@ class Excel:
             for cell in row:
                 if cell.value == column_name:
                     return cell.column
-        logger.warning(f"Столбец '{column_name}' не найден, создаем новый.")
+        logger.warning(f"{self.account.profile_number} Столбец '{column_name}' не найден, создаем новый.")
         return self.add_column(column_name)
 
     def get_cell(self, column_name: str, row: Optional[int] = None) -> str | int | None:
@@ -282,7 +282,7 @@ class Excel:
             date_object = datetime.strptime(date_str, config.date_format)
             return date_object
         logger.error(
-            f"Не нашли дату в столбце '{column_name}' у аккаунта {self.account.profile_number}, возвращаем старую дату")
+            f"{self.account.profile_number} Не нашли дату в столбце '{column_name}'  возвращаем старую дату")
         return datetime.now().replace(year=2000)
 
     def get_counters(self, column_name: str) -> list[int | float]:

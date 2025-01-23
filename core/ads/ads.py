@@ -70,7 +70,7 @@ class Ads:
             data = get_response(url, params)
             return data['data']['ws']['puppeteer']
         except Exception as e:
-            logger.error(f"{self.profile_number}: Ошибка при открытии браузера: {e}")
+            logger.error(f"{self.profile_number} Ошибка при открытии браузера: {e}")
             raise e
 
     def _check_browser_status(self) -> Optional[str]:
@@ -84,12 +84,11 @@ class Ads:
         try:
             data = get_response(url, params)
             if data['data']['status'] == 'Active':
-                logger.info(f"{self.profile_number}: Браузер уже активен")
+                logger.info(f"{self.profile_number} Браузер уже активен")
                 return data['data']['ws']['puppeteer']
             return None
         except Exception as e:
-            logger.error(
-                f"{self.profile_number}: Ошибка при проверке статуса браузера (запущен ли ADS?: {e} ")
+            logger.error(f"{self.profile_number} Ошибка при проверке статуса браузера (запущен ли ADS?: {e} ")
             raise e
 
     def _start_browser(self) -> Browser:
@@ -102,7 +101,7 @@ class Ads:
             try:
                 # Проверяем статус браузера и запускаем его, если не активен
                 if not (endpoint := self._check_browser_status()):
-                    logger.info(f"{self.profile_number}: Запускаем браузер")
+                    logger.info(f"{self.profile_number} Запускаем браузер")
                     random_sleep(3, 4)
                     endpoint = self._open_browser()
 
@@ -113,10 +112,10 @@ class Ads:
                 browser = self.pw.chromium.connect_over_cdp(endpoint, slow_mo=slow_mo)
                 if browser.is_connected():
                     return browser
-                logger.error(f"{self.profile_number}: Error не удалось запустить браузер")
+                logger.error(f"{self.profile_number} Error не удалось запустить браузер")
 
             except Exception as e:
-                logger.error(f"{self.profile_number}: Error не удалось запустить браузер {e}")
+                logger.error(f"{self.profile_number} Error не удалось запустить браузер {e}")
                 self.pw.stop() if self.pw else None
                 random_sleep(5, 10)
 
@@ -135,7 +134,7 @@ class Ads:
                     page.close()
 
         except Exception as e:
-            logger.error(f"Ошибка при закрытии страниц: {e}")
+            logger.error(f"{self.profile_number} Ошибка при закрытии страниц: {e}")
             raise e
 
     def _close_browser(self) -> None:
@@ -156,7 +155,7 @@ class Ads:
         try:
             get_response(url, params)
         except Exception as e:
-            logger.error(f"Ошибка при остановке браузера: {e}")
+            logger.error(f"{self.profile_number} Ошибка при остановке браузера: {e}")
             raise e
 
     def catch_page(self, url_contains: str | list[str] = None, timeout: int = 10) -> \
@@ -179,7 +178,7 @@ class Ads:
                         self.pages_context_reload()
                     random_sleep(1, 2)
 
-        logger.warning(f"Ошибка страница не найдена: {url_contains}")
+        logger.warning(f"{self.profile_number} Ошибка страница не найдена: {url_contains}")
         return None
 
     def pages_context_reload(self) -> None:
@@ -310,7 +309,7 @@ class Ads:
                 except Exception as e:
                     if attempt == attempts - 1:
                         raise e
-                    logger.error(f"{self.profile_number}: Ошибка при открытии страницы {url}: {e}")
+                    logger.error(f"{self.profile_number} Ошибка при открытии страницы {url}: {e}")
                     random_sleep(1, 2)
 
         # Если передан xpath, ждем элемент на странице заданное время

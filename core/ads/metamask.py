@@ -165,7 +165,7 @@ class Metamask:
             metamask_page = page_catcher.value
         except Exception as e:
             logger.warning(
-                f"Wargning: не смогли поймать окно метамаск, пробуем еще {self.ads.profile_number} {e}")
+                f"{self.ads.profile_number}  Wargning: не смогли поймать окно метамаск, пробуем еще {e}")
             metamask_page = self.ads.catch_page(['notification', 'connect', 'confirm-transaction'])
             if not metamask_page:
                 raise Exception(f"Error: {self.ads.profile_number} Ошибка подключения метамаска")
@@ -285,7 +285,7 @@ class Metamask:
 
         # Находим нужную сеть и открываем настройки
         if not self.ads.page.get_by_test_id(f'network-list-item-options-button-{hex_id}').count():
-            logger.info(f'Сеть {chain.metamask_name} не найдена в списке установленных. Устанавливаем.')
+            logger.info(f'{self.ads.profile_number} Сеть {chain.metamask_name} не найдена в списке установленных. Устанавливаем.')
             self.ads.page.get_by_role('button', name='Close').first.click()
             self.set_chain(chain)
             return
@@ -317,5 +317,5 @@ class Metamask:
             self.ads.page.get_by_test_id('network-form-ticker-input').fill(chain.native_token)
 
         # Сохраняем изменения
-        self.ads.page.get_by_role('button', name='Save').click()
-        logger.info(f'Данные сети {chain.metamask_name} успешно изменены')
+        self.ads.page.get_by_role('button', name='Save').or_(self.ads.page.get_by_role('button', name='Сохранить')).click()
+        logger.info(f'{self.ads.profile_number} Данные сети {chain.metamask_name} успешно изменены')

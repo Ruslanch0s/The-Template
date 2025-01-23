@@ -24,7 +24,7 @@ class OKX:
         self._chains: Optional[list[str]] = None
 
         if not any([config.okx_api_key_main, config.okx_secret_key_main, config.okx_passphrase_main]):
-            logger.warning(f"Не указаны ключи для работы с OKX, запускаем работу без них")
+            logger.warning(f"{self.account.profile_number} Не указаны ключи для работы с OKX, запускаем работу без них")
             return
 
         self.funding_api = Funding.FundingAPI(
@@ -38,7 +38,7 @@ class OKX:
 
         try:
             self.funding_api.get_currencies()
-            logger.info(f"Подключение к OKX прошло успешно")
+            logger.info(f"{self.account.profile_number} Подключение к OKX прошло успешно")
         except Exception as error:
             logger.warning(f"Не удалось подключиться к OKX, возможно нужно указать прокси для биржи в settings: {error}, запускаем без OKX.")
 
@@ -72,7 +72,7 @@ class OKX:
         """
         if isinstance(chain, Chain):
             if not chain.okx_name:
-                logger.warning(f"[OKX] -> у сети {chain.name} нет названия для OKX")
+                logger.warning(f"{self.account.profile_number} [OKX] -> у сети {chain.name} нет названия для OKX")
                 return False
             chain = chain.okx_name
         chains = self.get_chains()
@@ -119,7 +119,7 @@ class OKX:
 
         if isinstance(chain, Chain):
             if not chain.okx_name:
-                logger.error(f"[OKX] Вывод невозможен, у сети {chain.name} нет названия для OKX")
+                logger.error(f"{self.account.profile_number} [OKX] Вывод невозможен, у сети {chain.name} нет названия для OKX")
                 return
             chain = chain.okx_name
 

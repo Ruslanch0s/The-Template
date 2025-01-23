@@ -152,7 +152,7 @@ class Onchain:
             # проверка наличия средств на балансе
             if balance.wei - fee_spend - amount.wei < 0:
                 message = f' баланс {token.symbol}: {balance}, сумма: {amount}'
-                logger.error(f'Недостаточно средств для отправки транзакции, {message}')
+                logger.error(f'{self.account.profile_number} Недостаточно средств для отправки транзакции, {message}')
                 raise ValueError(f'Недостаточно средств для отправки транзакции: {message}')
             tx['value'] = amount.wei
         else:
@@ -168,7 +168,7 @@ class Onchain:
         # подписываем и отправляем транзакцию
         tx_hash = self._sign_and_send(tx)
         message = f' {amount} {token.symbol} на адрес {to_address}'
-        logger.info(f'Транзакция отправлена [{message}] хэш: {tx_hash}')
+        logger.info(f'{self.account.profile_number} Транзакция отправлена [{message}] хэш: {tx_hash}')
         return tx_hash
 
     def _prepare_tx(self, value: Optional[Amount] = None,
@@ -247,7 +247,7 @@ class Onchain:
         tx = contract.functions.approve(spender, amount.wei).build_transaction(tx_params)
         self._sign_and_send(tx)
         message = f'approve {amount} {token.symbol} to {spender}'
-        logger.info(f'Транзакция отправлена {message}')
+        logger.info(f'{self.account.profile_number} Транзакция отправлена {message}')
 
     def _sign_and_send(self, tx: dict) -> str:
         """

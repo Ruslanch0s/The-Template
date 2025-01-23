@@ -42,12 +42,11 @@ def filter_record(record: dict) -> bool:
 
 def init_logger():
     logger.remove()
-    logger.bind(profile_number=None)
     logger.add(
         sys.stdout,
         level="INFO",
         colorize=True,
-        format="<light-cyan>{time:DD-MM HH:mm:ss}</light-cyan> | <level> {level: <8} </level><white> {file}:{function}: {line}</white> - {extra[profile_number]} <light-white>{message}</light-white>",
+        format="<light-cyan>{time:DD-MM HH:mm:ss}</light-cyan> | <level> {level: <8} </level><white> {file}:{function}: {line}</white> - <light-white>{message}</light-white>",
         filter=filter_record
     )
     log_path = os.path.join(config.PATH_LOG, 'logs.log')
@@ -55,7 +54,7 @@ def init_logger():
         log_path,
         level='DEBUG',
         rotation=datetime.timedelta(days=1),
-        format="<light-cyan>{time:DD-MM HH:mm:ss}</light-cyan> | <level> {level: <8} </level><white> {file}:{function}: {line}</white> - {extra[profile_number]} <light-white>{message}</light-white>",
+        format="<light-cyan>{time:DD-MM HH:mm:ss}</light-cyan> | <level> {level: <8} </level><white> {file}:{function}: {line}</white> - <light-white>{message}</light-white>",
         retention='15 days'
     )
 
