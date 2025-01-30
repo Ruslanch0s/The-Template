@@ -17,7 +17,8 @@ from config.settings import config
 
 
 async def custom_new_browser(botright: Botright, proxy: ProxyManager, faker: Faker, flags: List[str],
-                             temp_dir_path: str = None, **launch_arguments) -> BrowserContext:
+                             temp_dir_path: str = None, extension_path: str = None,
+                             **launch_arguments) -> BrowserContext:
     if botright.mask_fingerprint:
         fingerprint = faker.fingerprint
         parsed_launch_arguments = {
@@ -56,6 +57,14 @@ async def custom_new_browser(botright: Botright, proxy: ProxyManager, faker: Fak
         temp_dir_path = temp_dir.name
         botright.temp_dirs.append(temp_dir)
     print(temp_dir_path)
+
+    # Добавляем расширение, если путь указан
+    if extension_path:
+        flags.extend([
+            f"--disable-extensions-except={extension_path}",
+            f"--load-extension={extension_path}",
+        ])
+
     # Spawning a new Context for more options
     if proxy.browser_proxy:
         _browser = await botright.playwright.chromium.launch_persistent_context(
@@ -119,7 +128,7 @@ class CustomProxyManager(ProxyManager):
 
 
 class CustomBotright(Botright):
-    async def new_browser(self, proxy: Optional[str] = None, temp_dir_path: str = None, screen_size: dict = None,
+    async def new_browser(self, proxy: Optional[str] = None, temp_dir_path: str = None, extension_path: str = None, screen_size: dict = None,
                           **launch_arguments) -> BrowserContext:
         """
         Create a new Botright browser instance with specified configurations.
@@ -153,7 +162,7 @@ class CustomBotright(Botright):
             _faker.fingerprint.screen.width = screen_size['width']
             _faker.fingerprint.screen.height = screen_size['height']
 
-        _browser = await custom_new_browser(self, _proxy, _faker, flags, temp_dir_path, **launch_arguments)
+        _browser = await custom_new_browser(self, _proxy, _faker, flags, temp_dir_path=temp_dir_path, extension_path=extension_path, **launch_arguments)
         _browser.proxy = _proxy
         _browser.faker = _faker
         _browser.user_action_layer = self.user_action_layer
@@ -167,7 +176,7 @@ class CustomBotright(Botright):
 
 
 class BotrightBrowser:
-    def __init__(self, serial_number: int, proxy=None):
+    def __init__(self, serial_number: int, proxy=None, extension_name=None):
         self.browser_config = Browser(
             browser_type='chromium',
             path=str(PurePath(config.base_dir, 'config', 'data', 'ungoogled-chromium_132.0.6834.110-1.1_windows_x64',
@@ -180,6 +189,8 @@ class BotrightBrowser:
         self.temp_dir_path = PurePath(config.base_dir, 'config', 'data', 'chrome_profiles', str(serial_number))
         self.botright_client = None
         self.browser = None
+        self.extension_path = str(PurePath(config.base_dir, 'config', 'data', 'chrome_profiles', 'extensions',
+                                       extension_name))
 
     async def __aenter__(self):
         # # Удаляем временные директории
@@ -189,7 +200,8 @@ class BotrightBrowser:
         self.botright_client = await CustomBotright(
             spoof_canvas=False,
             use_undetected_playwright=True,
-            user_action_layer=True
+            user_action_layer=True,
+
         )
 
         # Устанавливаем конфигурацию браузера
@@ -199,6 +211,7 @@ class BotrightBrowser:
         self.browser = await self.botright_client.new_browser(
             proxy=self.proxy,
             temp_dir_path=str(self.temp_dir_path),
+            extension_path=self.extension_path,
             screen_size=self.screen_size
         )
 
@@ -215,6 +228,7 @@ async def main():
     async with BotrightBrowser(
             serial_number=1,
             proxy='puxtbrxz:tdym3r4xte8q@198.23.239.134:6540',
+            extension_name='MetaMask'
     ) as browser:
         page = await browser.new_page()
         await page.goto("https://www.browserscan.net/browser-checker")
