@@ -9,6 +9,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, Any
 
+import aiohttp
 import requests
 from eth_typing import ChecksumAddress
 from web3 import Web3
@@ -263,7 +264,7 @@ def timeout(timeout):
     return decorator
 
 
-def prepare_proxy_httpx(proxy: str) -> Optional[str]:
+def prepare_proxy(proxy: str) -> Optional[str]:
     """
     Подготавливает прокси для использования в запросах httpx. (okx)
     :param proxy: строка прокси
@@ -273,4 +274,29 @@ def prepare_proxy_httpx(proxy: str) -> Optional[str]:
         return None
 
     ip, port, login, password = proxy.split(":")
-    return f'http://{login}:{password}@{ip}:{port}'
+    return f'{login}:{password}@{ip}:{port}'
+
+
+def check_proxy(proxy: str):
+    """
+    Проверяет работоспособность прокси.
+    :param proxy_url: строка прокси в формате "http://login:password@ip:port"
+    """
+    if not proxy:
+        print("Прокси не был передан.")
+        return False
+
+    test_url = "https://httpbin.org/ip"  # Сервис для проверки IP
+
+    try:
+        response = requests.get(test_url, proxies={"http": f'http://{proxy}', "https": f'http://{proxy}'}, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            print(f"Прокси {proxy} работает. Ваш IP: {data['origin']}")
+            return True
+        else:
+            print(f"Прокси {proxy} не работает. Код ответа: {response.status_code}")
+            return False
+    except Exception as e:
+        print(f"Прокси {proxy} не работает. Ошибка: {e}")
+        return False

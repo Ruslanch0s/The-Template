@@ -8,12 +8,15 @@ from tempfile import TemporaryDirectory
 from typing import List, Optional
 
 import httpx
+import requests
 from async_class import link
 from botright import ProxyManager, Botright, Faker
 from botright.playwright_mock import BrowserContext
 from browsers import Browser
+from loguru import logger
 
 from config.settings import config
+from utils.utils import prepare_proxy
 
 
 async def custom_new_browser(botright: Botright, proxy: ProxyManager, faker: Faker, flags: List[str],
@@ -128,7 +131,8 @@ class CustomProxyManager(ProxyManager):
 
 
 class CustomBotright(Botright):
-    async def new_browser(self, proxy: Optional[str] = None, temp_dir_path: str = None, extension_path: str = None, screen_size: dict = None,
+    async def new_browser(self, proxy: Optional[str] = None, temp_dir_path: str = None, extension_path: str = None,
+                          screen_size: dict = None,
                           **launch_arguments) -> BrowserContext:
         """
         Create a new Botright browser instance with specified configurations.
@@ -162,7 +166,8 @@ class CustomBotright(Botright):
             _faker.fingerprint.screen.width = screen_size['width']
             _faker.fingerprint.screen.height = screen_size['height']
 
-        _browser = await custom_new_browser(self, _proxy, _faker, flags, temp_dir_path=temp_dir_path, extension_path=extension_path, **launch_arguments)
+        _browser = await custom_new_browser(self, _proxy, _faker, flags, temp_dir_path=temp_dir_path,
+                                            extension_path=extension_path, **launch_arguments)
         _browser.proxy = _proxy
         _browser.faker = _faker
         _browser.user_action_layer = self.user_action_layer
@@ -176,7 +181,7 @@ class CustomBotright(Botright):
 
 
 class BotrightBrowser:
-    def __init__(self, serial_number: int, proxy=None, extension_name=None):
+    def __init__(self, profile_number: int, proxy=None, extension_name=None):
         self.browser_config = Browser(
             browser_type='chromium',
             path=str(PurePath(config.base_dir, 'config', 'data', 'ungoogled-chromium_132.0.6834.110-1.1_windows_x64',
@@ -184,13 +189,14 @@ class BotrightBrowser:
             display_name='Google Chrome',
             version='132.0.6834.110'
         )
+        self.profile_number = profile_number
         self.proxy = proxy
         self.screen_size = {'width': 1920, 'height': 1080}
-        self.temp_dir_path = PurePath(config.base_dir, 'config', 'data', 'chrome_profiles', str(serial_number))
+        self.temp_dir_path = PurePath(config.base_dir, 'config', 'data', 'chrome_profiles', str(self.profile_number))
         self.botright_client = None
         self.browser = None
         self.extension_path = str(PurePath(config.base_dir, 'config', 'data', 'chrome_profiles', 'extensions',
-                                       extension_name))
+                                           extension_name))
 
     async def __aenter__(self):
         # # Удаляем временные директории
