@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -77,5 +78,6 @@ class Config(Singleton):
     PATH_LOG = os.path.join(os.getcwd(), "logs")
     PATH_EXCEL = os.path.join(PATH_DATA, "accounts.xlsx")
 
+    base_dir = Path(__file__).parent.parent
 
 config = Config()

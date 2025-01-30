@@ -172,3 +172,7 @@ cython_debug/
 /config/data/seeds.txt
 
 /config/data/addresses.txt
+
+ungoogled-chromium_132.0.6834.110-1.1_windows_x64
+chrome_profiles
+*.pt

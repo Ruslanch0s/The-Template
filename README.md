@@ -1,5 +1,13 @@
 # The-Template
 
+Python 3.10
+
+```commandline
+pip install --upgrade pip
+pip install botright
+playwright install
+python -c 'import hcaptcha_challenger as solver; solver.install(clip=True)'
+```
 
 ### Описание
 
