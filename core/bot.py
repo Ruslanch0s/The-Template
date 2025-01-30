@@ -1,8 +1,8 @@
 from loguru import logger
 
-from core.ads.ads import Ads
+from core.browsers.ads import Ads
 from core.excel import Excel
-from core.ads.metamask import Metamask
+from core.browsers.modules.metamask import Metamask
 from core.okx_py import OKX
 from core.onchain import Onchain
 from models.chain import Chain

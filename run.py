@@ -1,16 +1,15 @@
 import datetime
-import random
 import time
+
 from loguru import logger
 
-from config import config, Chains, Tokens
+from config import config
 from core.bot import Bot
-from core.onchain import Onchain
 from core.excel import Excel
 from models.account import Account
-from utils.logging import init_logger, send_telegram_message
-from utils.utils import random_sleep, get_accounts, generate_password, get_price_token, shuffle_account, \
-    get_multiplayer
+from projects.reddio import Reddio
+from utils.logging import init_logger
+from utils.utils import random_sleep, get_accounts, shuffle_account
 
 
 def main():
@@ -35,8 +34,10 @@ def main():
             # Пауза между профилями
             random_sleep(*config.pause_between_profile)
 
-        logger.success(f'Цикл {i + 1} завершен, обработано {len(accounts_for_work)} аккаунтов')
-        logger.info(f'Ожидание перед следующим циклом ~{config.pause_between_cycle[1]} секунд')
+        logger.success(
+            f'Цикл {i + 1} завершен, обработано {len(accounts_for_work)} аккаунтов')
+        logger.info(
+            f'Ожидание перед следующим циклом ~{config.pause_between_cycle[1]} секунд')
 
         # Пауза между циклами
         random_sleep(*config.pause_between_cycle)
@@ -115,10 +116,8 @@ def schedule_and_filter(accounts: list[Account]) -> list[Account]:
 
     logger.info(f"Выбрано {len(accounts_for_work)} аккаунтов для работы")
 
-
     # возвращаем список аккаунтов для работы
     return accounts_for_work
-
 
 
 def activity(bot: Bot):
@@ -127,9 +126,19 @@ def activity(bot: Bot):
     :param bot: бот
     :return: None
     """
-    bot.ads.open_url('google.com')
-    pass
+    try:
+        bot.metamask.auth_metamask()
+    except:
+        adress, seed, password = bot.metamask.create_wallet()
+        bot.excel.set_cell('Address', adress)
+        bot.excel.set_cell('Password', password)
+        bot.excel.set_cell('Seed', seed)
 
+    reddio = Reddio(bot=bot)
+    reddio.start()
+
+    time.sleep(10000)
+    pass
 
 
 if __name__ == '__main__':

@@ -25,6 +25,7 @@ class Chain:
             metamask_name: Optional[str] = None,
             tx_type: int = 2,
             native_token: str = 'ETH',
+            explorer_url: str = None,
             okx_name: Optional[str] = None
     ):
         self.name = name
@@ -33,6 +34,7 @@ class Chain:
         self.metamask_name = metamask_name if metamask_name else name
         self.tx_type = tx_type
         self.native_token = native_token
+        self.explorer_url = explorer_url
         self.okx_name = okx_name
 
     def __str__(self):

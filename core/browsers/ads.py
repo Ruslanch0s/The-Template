@@ -11,7 +11,8 @@ from config.settings import config
 from models.account import Account
 from utils.utils import random_sleep, get_response
 
-from playwright.sync_api import sync_playwright, Browser, Page, Locator, Playwright, Frame
+from patchright.sync_api import sync_playwright, Browser, Page, Locator, \
+    Playwright, Frame
 from loguru import logger
 
 
@@ -37,7 +38,8 @@ class Ads:
         self._prepare_browser()
 
         if config.is_mobile_proxy:
-            get_response(config.link_change_ip, attempts=1, return_except=False)
+            get_response(config.link_change_ip, attempts=1,
+                         return_except=False)
 
         if config.check_proxy:
             self._check_proxy()
@@ -70,7 +72,8 @@ class Ads:
             data = get_response(url, params)
             return data['data']['ws']['puppeteer']
         except Exception as e:
-            logger.error(f"{self.profile_number} Ошибка при открытии браузера: {e}")
+            logger.error(
+                f"{self.profile_number} Ошибка при открытии браузера: {e}")
             raise e
 
     def _check_browser_status(self) -> Optional[str]:
@@ -88,7 +91,8 @@ class Ads:
                 return data['data']['ws']['puppeteer']
             return None
         except Exception as e:
-            logger.error(f"{self.profile_number} Ошибка при проверке статуса браузера (запущен ли ADS?: {e} ")
+            logger.error(
+                f"{self.profile_number} Ошибка при проверке статуса браузера (запущен ли ADS?: {e} ")
             raise e
 
     def _start_browser(self) -> Browser:
@@ -109,13 +113,16 @@ class Ads:
                 random_sleep(4, 5)
                 self.pw = sync_playwright().start()
                 slow_mo = random.randint(*config.speed)
-                browser = self.pw.chromium.connect_over_cdp(endpoint, slow_mo=slow_mo)
+                browser = self.pw.chromium.connect_over_cdp(endpoint,
+                                                            slow_mo=slow_mo)
                 if browser.is_connected():
                     return browser
-                logger.error(f"{self.profile_number} Error не удалось запустить браузер")
+                logger.error(
+                    f"{self.profile_number} Error не удалось запустить браузер")
 
             except Exception as e:
-                logger.error(f"{self.profile_number} Error не удалось запустить браузер {e}")
+                logger.error(
+                    f"{self.profile_number} Error не удалось запустить браузер {e}")
                 self.pw.stop() if self.pw else None
                 random_sleep(5, 10)
 
@@ -134,7 +141,8 @@ class Ads:
                     page.close()
 
         except Exception as e:
-            logger.error(f"{self.profile_number} Ошибка при закрытии страниц: {e}")
+            logger.error(
+                f"{self.profile_number} Ошибка при закрытии страниц: {e}")
             raise e
 
     def _close_browser(self) -> None:
@@ -155,10 +163,12 @@ class Ads:
         try:
             get_response(url, params)
         except Exception as e:
-            logger.error(f"{self.profile_number} Ошибка при остановке браузера: {e}")
+            logger.error(
+                f"{self.profile_number} Ошибка при остановке браузера: {e}")
             raise e
 
-    def catch_page(self, url_contains: str | list[str] = None, timeout: int = 10) -> \
+    def catch_page(self, url_contains: str | list[str] = None,
+                   timeout: int = 10) -> \
             Optional[Page]:
         """
         Ищет страницу по частичному совпадению url. Если не находит, возвращает None. Каждые 3 попытки обновляет контекст.
@@ -178,7 +188,8 @@ class Ads:
                         self.pages_context_reload()
                     random_sleep(1, 2)
 
-        logger.warning(f"{self.profile_number} Ошибка страница не найдена: {url_contains}")
+        logger.warning(
+            f"{self.profile_number} Ошибка страница не найдена: {url_contains}")
         return None
 
     def pages_context_reload(self) -> None:
@@ -214,12 +225,14 @@ class Ads:
                 "user_proxy_config": proxy_config
             }
             url = self._local_api_url + "user/update"
-            response = requests.post(url, json=data, headers={"Content-Type": "application/json"})
+            response = requests.post(url, json=data, headers={
+                "Content-Type": "application/json"})
             response.raise_for_status()
             random_sleep(2)
 
         except Exception as e:
-            logger.error(f"{self.profile_number} Ошибка при установке прокси: {e}")
+            logger.error(
+                f"{self.profile_number} Ошибка при установке прокси: {e}")
             raise e
 
     def _get_profile_id(self) -> str:
@@ -235,7 +248,8 @@ class Ads:
             data = get_response(url, params)
             return data['data']['list'][0]['user_id']
         except Exception as e:
-            logger.error(f"{self.profile_number} Ошибка при получении id профиля: {e}")
+            logger.error(
+                f"{self.profile_number} Ошибка при получении id профиля: {e}")
             raise e
 
     def _check_proxy(self) -> None:
@@ -266,7 +280,8 @@ class Ads:
             logger.error(f"{self.profile_number} Ошибка при получении ip")
             self.page.goto("https://api.ipify.org/?format=json")
             random_sleep(1, 2)
-            ip_text = self.page.locator("//pre").inner_text()  # парсим json и возвращаем ip
+            ip_text = self.page.locator(
+                "//pre").inner_text()  # парсим json и возвращаем ip
             ip = json.loads(ip_text)["ip"]  # парсим json и возвращаем ip
 
         return ip
@@ -309,7 +324,8 @@ class Ads:
                 except Exception as e:
                     if attempt == attempts - 1:
                         raise e
-                    logger.error(f"{self.profile_number} Ошибка при открытии страницы {url}: {e}")
+                    logger.error(
+                        f"{self.profile_number} Ошибка при открытии страницы {url}: {e}")
                     random_sleep(1, 2)
 
         # Если передан xpath, ждем элемент на странице заданное время
@@ -372,7 +388,8 @@ class Ads:
 
         return new_clipboard
 
-    def keyboard_emulation(self, locator: Locator, text: str, mistake: bool = False) -> None:
+    def keyboard_emulation(self, locator: Locator, text: str,
+                           mistake: bool = False) -> None:
         """
         Вводит текст в поле посимвольно с паузой от 0.1 до 0.5 секунды.
         :param mistake: допускать ли ошибки при вводе
