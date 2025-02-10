@@ -1,5 +1,5 @@
 import os
-from pathlib import Path
+from pathlib import Path, PurePath
 
 from dotenv import load_dotenv
 
@@ -62,9 +62,6 @@ class Config(Singleton):
     # типы логов для отправки в телеграм
     alert_types = ["CRITICAL", "SUCCESS"]  # "ERROR", "WARNING", "INFO", "DEBUG"
 
-    # адрес расширения в браузере ADS
-    metamask_url = "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html"
-
     # ниже системные переменные, не меняйте их
     bot_token = os.getenv("BOT_TOKEN")
 
@@ -79,5 +76,8 @@ class Config(Singleton):
     PATH_EXCEL = os.path.join(PATH_DATA, "accounts.xlsx")
 
     base_dir = Path(__file__).parent.parent
+    chrome_profiles_dir = Path(base_dir, 'config', 'data', 'chrome_profiles')
+    camfox_profiles_dir = Path(base_dir, 'config', 'data', 'camfox_profiles')
+
 
 config = Config()

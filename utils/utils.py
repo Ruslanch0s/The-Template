@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import functools
 import os
 import random
@@ -9,11 +10,10 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, Any
 
-import aiohttp
 import requests
 from eth_typing import ChecksumAddress
-from web3 import Web3
 from loguru import logger
+from web3 import Web3
 
 from config.settings import config
 from core.excel import Excel
@@ -60,13 +60,13 @@ def get_accounts() -> list[Account]:
     accounts = []
 
     # ленивый генератор аккаунтов
-    for profile_number, address, password, private_key, seed, proxies in combined_data:
-        accounts.append(Account(profile_number, address, password, private_key, seed, proxies))
+    for profile_number, work_status, address, password, private_key, seed, proxies in combined_data:
+        accounts.append(Account(profile_number, work_status, address, password, private_key, seed, proxies))
 
     return accounts
 
 
-def get_from_excel() -> tuple[list[str], list[str], list[str], list[str], list[str], list[str]]:
+def get_from_excel() -> tuple[list[str], list[str], list[str], list[str], list[str], list[str], list[str]]:
     """
     Получает аккаунты из excel файла
     :return: кортеж списков аккаунтов
@@ -74,12 +74,13 @@ def get_from_excel() -> tuple[list[str], list[str], list[str], list[str], list[s
     excel = Excel(file='accounts.xlsx')
     # Получаем данные из excel файла
     profile_numbers = excel.get_column("Profile Number")
+    work_status = excel.get_column("Work Status")
     passwords = excel.get_column("Password")
     addresses = excel.get_column("Address")
     seeds = excel.get_column("Seed")
     private_keys = excel.get_column("Private Key")
     proxies = excel.get_column("Proxy")
-    return profile_numbers, addresses, passwords, private_keys, seeds, proxies
+    return profile_numbers, work_status, addresses, passwords, private_keys, seeds, proxies
 
 
 def get_accounts_from_txt() -> tuple[list[str], list[str], list[str], list[str], list[str], list[str]]:
@@ -154,6 +155,21 @@ def random_sleep(min_delay: float = 0.5, max_delay: float = 1.5) -> None:
 
     delay = random.uniform(min_delay, max_delay)  # Генерируем случайное число
     time.sleep(delay)  # Делаем перерыв
+
+
+async def async_random_sleep(min_delay: float = 0.5, max_delay: float = 1.5) -> None:
+    """
+    Sleep random time
+    :param min_delay: минимальное время задержки
+    :param max_delay: максимальное время задержки
+    :return: None
+    """
+    # если передали только min задержку, то max будет 10% больше
+    if min_delay > max_delay:
+        max_delay = min_delay * 1.1
+
+    delay = random.uniform(min_delay, max_delay)  # Генерируем случайное число
+    await asyncio.sleep(delay)  # Делаем перерыв
 
 
 def generate_password(length_min: int = 25, length_max: int = 35) -> str:
@@ -300,3 +316,11 @@ def check_proxy(proxy: str):
     except Exception as e:
         print(f"Прокси {proxy} не работает. Ошибка: {e}")
         return False
+
+
+def serialize_proxy(proxy: str) -> tuple[str, str, str, str]:
+    """
+    return: tuple(ip, port, login, pass)
+    """
+    ip, port, login, password = proxy.split(":")
+    return ip, port, login, password

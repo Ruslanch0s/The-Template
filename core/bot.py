@@ -1,6 +1,7 @@
 from loguru import logger
 
-from core.browsers.ads import Ads
+from core.browsers.ads_browser.ads import Ads
+from core.browsers.base_browser import AbstractBrowser
 from core.excel import Excel
 from core.browsers.modules.metamask import Metamask
 from core.okx_py import OKX
@@ -32,7 +33,20 @@ class Bot:
             logger.error(f"{self.account.profile_number} Аккаунт завершен по таймауту")
         else:
             if "object has no attribute 'page'" in str(exc_val):
-                logger.error(f"{self.account.profile_number} Аккаунт завершен с ошибкой, возможно вы выключили работу браузера и пытаетесь сделать логику работу с браузером. {exc_val}'")
+                logger.error(
+                    f"{self.account.profile_number} Аккаунт завершен с ошибкой, возможно вы выключили работу браузера и пытаетесь сделать логику работу с браузером. {exc_val}'")
             else:
                 logger.critical(f"{self.account.profile_number} Аккаунт завершен с ошибкой {exc_val}")
         return True
+
+
+class CustomBot:
+    def __init__(self, browser: AbstractBrowser):
+        self.browser = browser
+
+    def __enter__(self):
+        self.browser.open_browser()
+        return self
+
+    def __exit__(self):
+        self.browser.close_browser()

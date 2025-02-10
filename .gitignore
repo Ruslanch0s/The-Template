@@ -175,5 +175,6 @@ cython_debug/
 
 ungoogled-chromium_132.0.6834.110-1.1_windows_x64
 chrome_profiles
+camfox_profiles
 *.pt
 *.partial

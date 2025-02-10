@@ -12,6 +12,7 @@ class Account:
     def __init__(
             self,
             profile_number: int,
+            status: Optional[str] = None,  # in_work
             address: Optional[str] = None,
             password: Optional[str] = None,
             private_key: Optional[str] = None,
@@ -19,6 +20,7 @@ class Account:
             proxy: Optional[str] = None
     ) -> None:
         self.profile_number = profile_number
+        self.status = status
         self.address: ChecksumAddress = Web3.to_checksum_address(address) if address else address
         self.private_key = private_key
         self.password = password

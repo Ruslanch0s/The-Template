@@ -3,24 +3,21 @@ from __future__ import annotations
 
 import asyncio
 import sys
-from pathlib import PurePath
+from pathlib import PurePath, Path
 from tempfile import TemporaryDirectory
 from typing import List, Optional
 
 import httpx
-import requests
 from async_class import link
 from botright import ProxyManager, Botright, Faker
 from botright.playwright_mock import BrowserContext
 from browsers import Browser
-from loguru import logger
 
 from config.settings import config
-from utils.utils import prepare_proxy
 
 
 async def custom_new_browser(botright: Botright, proxy: ProxyManager, faker: Faker, flags: List[str],
-                             temp_dir_path: str = None, extension_path: str = None,
+                             temp_dir_path: str = None, extension_paths: list[str] = None,
                              **launch_arguments) -> BrowserContext:
     if botright.mask_fingerprint:
         fingerprint = faker.fingerprint
@@ -62,11 +59,12 @@ async def custom_new_browser(botright: Botright, proxy: ProxyManager, faker: Fak
     print(temp_dir_path)
 
     # Добавляем расширение, если путь указан
-    if extension_path:
-        flags.extend([
-            f"--disable-extensions-except={extension_path}",
-            f"--load-extension={extension_path}",
-        ])
+    if extension_paths:
+        for extension_path in extension_paths:
+            flags.extend([
+                f"--disable-extensions-except={extension_path}",
+                f"--load-extension={extension_path}",
+            ])
 
     # Spawning a new Context for more options
     if proxy.browser_proxy:
@@ -131,7 +129,8 @@ class CustomProxyManager(ProxyManager):
 
 
 class CustomBotright(Botright):
-    async def new_browser(self, proxy: Optional[str] = None, temp_dir_path: str = None, extension_path: str = None,
+    async def new_browser(self, proxy: Optional[str] = None, temp_dir_path: str = None,
+                          extension_paths: list[str] = None,
                           screen_size: dict = None,
                           **launch_arguments) -> BrowserContext:
         """
@@ -166,8 +165,11 @@ class CustomBotright(Botright):
             _faker.fingerprint.screen.width = screen_size['width']
             _faker.fingerprint.screen.height = screen_size['height']
 
+            _faker.fingerprint.screen.avail_width = screen_size['width']
+            _faker.fingerprint.screen.avail_height = screen_size['height']
+
         _browser = await custom_new_browser(self, _proxy, _faker, flags, temp_dir_path=temp_dir_path,
-                                            extension_path=extension_path, **launch_arguments)
+                                            extension_paths=extension_paths, **launch_arguments)
         _browser.proxy = _proxy
         _browser.faker = _faker
         _browser.user_action_layer = self.user_action_layer
@@ -181,7 +183,17 @@ class CustomBotright(Botright):
 
 
 class BotrightBrowser:
-    def __init__(self, profile_number: int, proxy=None, extension_name=None):
+    def __init__(
+            self,
+            profile_number: int,
+
+            proxy_ip: str,
+            proxy_port: str,
+            proxy_login: str,
+            proxy_password: str,
+
+            addons: list[str] = None
+    ):
         self.browser_config = Browser(
             browser_type='chromium',
             path=str(PurePath(config.base_dir, 'config', 'data', 'ungoogled-chromium_132.0.6834.110-1.1_windows_x64',
@@ -190,18 +202,17 @@ class BotrightBrowser:
             version='132.0.6834.110'
         )
         self.profile_number = profile_number
-        self.proxy = proxy
+        self.proxy = f'{proxy_login}:{proxy_password}@{proxy_ip}:{proxy_port}'
         self.screen_size = {'width': 1920, 'height': 1080}
-        self.temp_dir_path = PurePath(config.base_dir, 'config', 'data', 'chrome_profiles', str(self.profile_number))
+        self.temp_dir_path = Path(config.chrome_profiles_dir, str(self.profile_number))
         self.botright_client = None
         self.browser = None
-        self.extension_path = str(PurePath(config.base_dir, 'config', 'data', 'chrome_profiles', 'extensions',
-                                           extension_name))
+        self.extension_paths = [str(Path(config.chrome_profiles_dir, 'extensions', addon)) for addon in
+                                addons] if addons else []
 
     async def __aenter__(self):
         # # Удаляем временные директории
         # botright.Botright.delete_botright_temp_dirs()
-
         # Инициализируем Botright клиент
         self.botright_client = await CustomBotright(
             spoof_canvas=False,
@@ -209,6 +220,7 @@ class BotrightBrowser:
             user_action_layer=True,
 
         )
+        self.botright_client.flags.remove('--incognito')
 
         # Устанавливаем конфигурацию браузера
         self.botright_client.browser = self.browser_config
@@ -217,7 +229,7 @@ class BotrightBrowser:
         self.browser = await self.botright_client.new_browser(
             proxy=self.proxy,
             temp_dir_path=str(self.temp_dir_path),
-            extension_path=self.extension_path,
+            extension_paths=self.extension_paths,
             screen_size=self.screen_size
         )
 
@@ -232,7 +244,7 @@ class BotrightBrowser:
 
 async def main():
     async with BotrightBrowser(
-            serial_number=1,
+            profile_number=1,
             proxy='puxtbrxz:tdym3r4xte8q@198.23.239.134:6540',
             extension_name='MetaMask'
     ) as browser:
